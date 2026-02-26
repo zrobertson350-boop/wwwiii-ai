@@ -58,7 +58,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
 
 // Funding total — aggregates all donations
 // Base amount covers any donations tracked before Stripe (or manual additions)
-const BASE_FUNDED_USD = 0; // Tracks from Stripe only
+const BASE_FUNDED_USD = 25; // Seed donation from founder
 
 app.get('/api/funding-total', async (req, res) => {
   try {
@@ -96,6 +96,11 @@ app.get('/api/funding-total', async (req, res) => {
   }
 });
 
+// Seed donors (before Stripe tracking)
+const SEED_DONORS = [
+  { name: 'Zachariah R.', amount: 25, timeAgo: 'founder', date: '2026-02-26T21:22:04.000Z' },
+];
+
 // Donor list — recent successful donations
 app.get('/api/donors', async (req, res) => {
   try {
@@ -105,14 +110,12 @@ app.get('/api/donors', async (req, res) => {
       expand: ['data.payment_intent'],
     });
 
-    const donors = [];
+    const donors = [...SEED_DONORS];
     for (const s of sessions.data) {
-      // Skip refunded payments
       const pi = s.payment_intent;
-      if (pi && pi.status === 'succeeded' && pi.amount_received > pi.amount_refunded) {
+      if (pi && pi.status === 'succeeded' && pi.amount_received > (pi.amount_refunded || 0)) {
         const netCents = pi.amount_received - (pi.amount_refunded || 0);
         const name = s.customer_details?.name || 'Anonymous';
-        // Show first name + last initial for privacy
         const parts = name.trim().split(' ');
         const displayName = parts.length > 1
           ? parts[0] + ' ' + parts[parts.length - 1][0] + '.'
@@ -130,10 +133,12 @@ app.get('/api/donors', async (req, res) => {
       }
     }
 
+    // Sort by date descending
+    donors.sort((a, b) => new Date(b.date) - new Date(a.date));
     res.json(donors);
   } catch (err) {
     console.error('Donors error:', err.message);
-    res.json([]);
+    res.json(SEED_DONORS);
   }
 });
 

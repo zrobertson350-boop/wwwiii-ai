@@ -224,7 +224,7 @@ section{padding:100px 0}
 .fund-circle-wrap{display:flex;flex-direction:column;align-items:center;margin-bottom:48px}
 .fund-circle{position:relative;width:320px;height:320px}
 @media(max-width:600px){.fund-circle{width:260px;height:260px}}
-.fund-circle svg{width:100%;height:100%;transform:rotate(-90deg)}
+.fund-circle svg{width:100%;height:100%;transform:rotate(-90deg);overflow:visible}
 .fund-circle-bg{fill:none;stroke:var(--surface2);stroke-width:18}
 .fund-circle-fill{fill:none;stroke:url(#fundGradient);stroke-width:18;stroke-linecap:round;
   transition:stroke-dashoffset 2s cubic-bezier(.4,0,.2,1)}
@@ -236,7 +236,6 @@ section{padding:100px 0}
 .fund-circle-spin{fill:none;stroke:url(#fundGradient);stroke-width:2;stroke-dasharray:20 514;
   stroke-linecap:round;opacity:.3;animation:circleSpin 8s linear infinite}
 @keyframes circleSpin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
-.fund-circle svg{overflow:visible}
 .fund-circle-center{position:absolute;inset:0;display:flex;flex-direction:column;
   align-items:center;justify-content:center;text-align:center}
 .fund-circle-raised{font-family:var(--sans);font-size:clamp(28px,5vw,42px);font-weight:700;
@@ -323,6 +322,7 @@ footer .f-links a{color:var(--muted)}
       <a href="/whitepaper.html">Whitepaper</a>
       <a href="#contract">Contract</a>
     </div>
+    <button class="wallet-btn" id="walletBtn" onclick="connectWallet()">Connect Wallet</button>
   </div>
 </nav>
 
@@ -400,8 +400,8 @@ footer .f-links a{color:var(--muted)}
         </svg>
         <div class="fund-circle-center">
           <div class="fund-circle-label">Raised</div>
-          <div class="fund-circle-raised" id="fundRaisedAmount">$0</div>
-          <div class="fund-circle-goal" id="fundGoalText">out of $1,000,000,000</div>
+          <div class="fund-circle-raised" id="fundRaisedAmount">$25</div>
+          <div class="fund-circle-goal">out of $1,000,000,000</div>
           <div class="fund-circle-pct" id="fundRaisedPct">0%</div>
         </div>
       </div>
@@ -413,37 +413,96 @@ footer .f-links a{color:var(--muted)}
       </div>
     </div>
 
-    <!-- DONATE -->
-    <div class="card-donate">
-      <div class="card-donate-header">
-        <div class="card-donate-title">Donate to the AI Fund</div>
-        <div class="card-donate-sub">100% of your donation funds compute, researchers, and infrastructure. Your contribution is recorded — early donors receive a <strong>pro rata allocation</strong> of $WWWIII tokens if and when the token launches.</div>
+    <!-- PAYMENT METHOD TABS -->
+    <div class="pay-tabs">
+      <button class="pay-tab active" onclick="switchPayTab('crypto')">Crypto (ETH)</button>
+      <button class="pay-tab" onclick="switchPayTab('card')">Card / Apple Pay</button>
+    </div>
+
+    <!-- CRYPTO TAB -->
+    <div class="pay-panel" id="panel-crypto">
+      <div class="fund-tiers">
+        <div class="fund-tier">
+          <div class="fund-tier-name">Supporter</div>
+          <div class="fund-tier-price">0.05<span class="eth">ETH</span></div>
+          <div class="fund-tier-tokens">50,000 $WWWIII</div>
+          <ul class="fund-tier-perks">
+            <li>Early access to model checkpoints</li>
+            <li>DAO governance voting rights</li>
+            <li>Supporter badge on contributor wall</li>
+          </ul>
+          <button class="fund-btn fund-btn-outline" onclick="fundTier('supporter')">Buy with ETH</button>
+        </div>
+        <div class="fund-tier featured">
+          <div class="fund-tier-name">Builder</div>
+          <div class="fund-tier-price">0.25<span class="eth">ETH</span></div>
+          <div class="fund-tier-tokens">300,000 $WWWIII</div>
+          <ul class="fund-tier-perks">
+            <li>Everything in Supporter</li>
+            <li>Priority API access at launch</li>
+            <li>Name in model credits</li>
+            <li>Private Discord channel</li>
+          </ul>
+          <button class="fund-btn fund-btn-primary" onclick="fundTier('builder')">Buy with ETH</button>
+        </div>
+        <div class="fund-tier">
+          <div class="fund-tier-name">Architect</div>
+          <div class="fund-tier-price">1.0<span class="eth">ETH</span></div>
+          <div class="fund-tier-tokens">1,500,000 $WWWIII</div>
+          <ul class="fund-tier-perks">
+            <li>Everything in Builder</li>
+            <li>Vote on architecture decisions</li>
+            <li>Dedicated compute credit</li>
+            <li>Advisory council seat</li>
+          </ul>
+          <button class="fund-btn fund-btn-outline" onclick="fundTier('architect')">Buy with ETH</button>
+        </div>
       </div>
-      <div class="card-amounts">
-        <button class="card-amt" onclick="selectAmount(10)">$10</button>
-        <button class="card-amt" onclick="selectAmount(25)">$25</button>
-        <button class="card-amt active" onclick="selectAmount(100)">$100</button>
-        <button class="card-amt" onclick="selectAmount(500)">$500</button>
-        <button class="card-amt" onclick="selectAmount(1000)">$1,000</button>
-        <button class="card-amt" onclick="selectAmount(5000)">$5,000</button>
+
+      <div class="fund-or">— OR SEND ETH DIRECTLY —</div>
+
+      <div class="fund-wallet">
+        <div class="fund-wallet-label">Presale Contract (Sepolia)</div>
+        <div class="fund-address" onclick="copyAddress()" id="fundAddress">
+          <code>0xCD26a62fc178129F4b24759c329e0c1867d4e613</code>
+          <span class="copy-hint">Click to copy</span>
+        </div>
       </div>
-      <div class="card-custom">
-        <label for="customAmt">Custom amount (USD)</label>
-        <input type="number" id="customAmt" placeholder="Enter amount" min="5" step="1" value="100">
-      </div>
-      <div class="card-token-preview" id="cardTokenPreview">
-        Your pro rata share: <strong>0.000005%</strong> of $WWWIII token supply
-      </div>
-      <button class="fund-btn fund-btn-primary" style="width:100%;padding:16px;font-size:16px;margin-top:16px" onclick="payWithCard()">
-        Donate $100
-      </button>
-      <div class="card-methods">
-        <span>Accepted:</span>
-        <span class="method-badge">Visa</span>
-        <span class="method-badge">Mastercard</span>
-        <span class="method-badge">Apple Pay</span>
-        <span class="method-badge">Google Pay</span>
-        <span class="method-badge">AMEX</span>
+    </div>
+
+    <!-- CARD / APPLE PAY TAB -->
+    <div class="pay-panel" id="panel-card" style="display:none">
+      <div class="card-donate">
+        <div class="card-donate-header">
+          <div class="card-donate-title">Donate with Card or Apple Pay</div>
+          <div class="card-donate-sub">Fiat donations go directly to the WWWIII development treasury. You'll receive $WWWIII tokens to your wallet after purchase.</div>
+        </div>
+        <div class="card-amounts">
+          <button class="card-amt" onclick="selectAmount(25)">$25</button>
+          <button class="card-amt" onclick="selectAmount(50)">$50</button>
+          <button class="card-amt active" onclick="selectAmount(100)">$100</button>
+          <button class="card-amt" onclick="selectAmount(500)">$500</button>
+          <button class="card-amt" onclick="selectAmount(1000)">$1,000</button>
+          <button class="card-amt" onclick="selectAmount(5000)">$5,000</button>
+        </div>
+        <div class="card-custom">
+          <label for="customAmt">Custom amount (USD)</label>
+          <input type="number" id="customAmt" placeholder="Enter amount" min="5" step="1" value="100">
+        </div>
+        <div class="card-token-preview" id="cardTokenPreview">
+          You'll receive approximately <strong>50,000 $WWWIII</strong> tokens
+        </div>
+        <button class="fund-btn fund-btn-primary" style="width:100%;padding:16px;font-size:16px;margin-top:16px" onclick="payWithCard()">
+          Pay $100
+        </button>
+        <div class="card-methods">
+          <span>Accepted:</span>
+          <span class="method-badge">Visa</span>
+          <span class="method-badge">Mastercard</span>
+          <span class="method-badge">Apple Pay</span>
+          <span class="method-badge">Google Pay</span>
+          <span class="method-badge">AMEX</span>
+        </div>
       </div>
     </div>
 
@@ -455,15 +514,6 @@ footer .f-links a{color:var(--muted)}
     <div class="climate-badge">
       <div class="climate-icon">🌍</div>
       <div class="climate-text"><strong>1.5% of every donation</strong> goes directly toward carbon reduction and climate initiatives. Building the future of AI responsibly means building a sustainable future for the planet.</div>
-    </div>
-
-    <!-- $WWWIII TOKEN — COMING SOON -->
-    <div style="margin-top:48px;text-align:center;padding:32px;border:1px dashed var(--border);border-radius:12px">
-      <div style="font-family:var(--mono);font-size:11px;color:var(--accent2);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px">Coming Soon</div>
-      <div style="font-family:var(--sans);font-size:22px;font-weight:600;margin-bottom:8px">$WWWIII Token</div>
-      <div style="color:var(--muted);font-size:14px;max-width:480px;margin:0 auto;line-height:1.6">
-        The $WWWIII governance token is being developed with full regulatory compliance (FCA &amp; SEC). Early donors will receive tokens <strong>pro rata</strong> — your share is proportional to your contribution relative to total funds raised. The earlier you donate, the larger your stake.
-      </div>
     </div>
   </div>
 </section>
@@ -841,12 +891,9 @@ footer .f-links a{color:var(--muted)}
 </script>
 
 <script>
-let userAccount = null;
-
 // ── Funding Circle ──
-const FUND_GOAL = 1_000_000_000; // $1B
-const CIRCLE_CIRCUMFERENCE = 534.07; // 2 * PI * 85
-
+const FUND_GOAL = 1_000_000_000;
+const CIRCLE_CIRCUMFERENCE = 534.07;
 let currentDisplayed = 0;
 
 function animateCount(target) {
@@ -857,11 +904,10 @@ function animateCount(target) {
   if (diff === 0) return;
   const duration = 1500;
   const startTime = performance.now();
-
   function step(now) {
     const elapsed = now - startTime;
     const progress = Math.min(elapsed / duration, 1);
-    const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+    const eased = 1 - Math.pow(1 - progress, 3);
     const current = Math.round(start + diff * eased);
     amtEl.textContent = '$' + current.toLocaleString();
     if (progress < 1) requestAnimationFrame(step);
@@ -873,38 +919,17 @@ function animateCount(target) {
 function updateFundingCircle(raised) {
   const pct = Math.min(raised / FUND_GOAL, 1);
   const offset = CIRCLE_CIRCUMFERENCE * (1 - pct);
-
   const fill = document.getElementById('fundCircleFill');
   const glow = document.getElementById('fundCircleGlow');
   if (fill) fill.setAttribute('stroke-dashoffset', offset);
   if (glow) glow.setAttribute('stroke-dashoffset', offset);
-
   animateCount(raised);
   const pctEl = document.getElementById('fundRaisedPct');
   if (pctEl) pctEl.textContent = (pct * 100).toFixed(pct < 0.0001 ? 6 : 2) + '%';
-
-  // Milestones
   if (raised >= 1_000_000) document.getElementById('ms-1m')?.classList.add('hit');
   if (raised >= 10_000_000) document.getElementById('ms-10m')?.classList.add('hit');
   if (raised >= 100_000_000) document.getElementById('ms-100m')?.classList.add('hit');
   if (raised >= 1_000_000_000) document.getElementById('ms-1b')?.classList.add('hit');
-}
-
-// Fetch funding total + donor list
-async function fetchFundingData() {
-  try {
-    const [fundRes, donorRes] = await Promise.all([
-      fetch('/api/funding-total'),
-      fetch('/api/donors'),
-    ]);
-    const fundData = await fundRes.json();
-    updateFundingCircle(fundData.totalUSD || 0);
-
-    const donors = await donorRes.json();
-    renderDonorList(donors);
-  } catch(e) {
-    updateFundingCircle(0);
-  }
 }
 
 function renderDonorList(donors) {
@@ -919,14 +944,163 @@ function renderDonorList(donors) {
   ).join('');
 }
 
-// Initialize on load and refresh every 30s
+async function fetchFundingData() {
+  try {
+    const [fundRes, donorRes] = await Promise.all([
+      fetch('/api/funding-total'),
+      fetch('/api/donors'),
+    ]);
+    const fundData = await fundRes.json();
+    updateFundingCircle(fundData.totalUSD || 0);
+    const donors = await donorRes.json();
+    renderDonorList(donors);
+  } catch(e) {
+    updateFundingCircle(25); // fallback
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   fetchFundingData();
   setInterval(fetchFundingData, 30000);
 });
 
+const TOKEN_ADDRESS = '0x5201ee6ffb64aeA97Cf887bd6852ca572A15f33a';
+const PRESALE_ADDRESS = '0xCD26a62fc178129F4b24759c329e0c1867d4e613';
+const SEPOLIA_CHAIN_ID = '0xaa36a7'; // 11155111
+
+// Presale contract ABI (only the functions we need)
+const PRESALE_ABI = [
+  'function buySupporter() external payable',
+  'function buyBuilder() external payable',
+  'function buyArchitect() external payable',
+  'function saleActive() external view returns (bool)',
+  'function totalRaised() external view returns (uint256)',
+  'function totalTokensSold() external view returns (uint256)',
+  'function tokensRemaining() external view returns (uint256)',
+  'function contributed(address) external view returns (uint256)',
+  'function tokensBought(address) external view returns (uint256)',
+];
+
+let userAccount = null;
+
+async function connectWallet() {
+  const btn = document.getElementById('walletBtn');
+  if (!window.ethereum) {
+    alert('MetaMask not detected. Please install MetaMask to connect your wallet.');
+    window.open('https://metamask.io/download/', '_blank');
+    return;
+  }
+  try {
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    userAccount = accounts[0];
+    btn.textContent = userAccount.slice(0, 6) + '...' + userAccount.slice(-4);
+    btn.classList.add('connected');
+
+    // Switch to Sepolia if needed
+    try {
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: SEPOLIA_CHAIN_ID }],
+      });
+    } catch (switchErr) {
+      if (switchErr.code === 4902) {
+        await window.ethereum.request({
+          method: 'wallet_addEthereumChain',
+          params: [{
+            chainId: SEPOLIA_CHAIN_ID,
+            chainName: 'Sepolia Testnet',
+            rpcUrls: ['https://ethereum-sepolia-rpc.publicnode.com'],
+            nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+            blockExplorerUrls: ['https://sepolia.etherscan.io'],
+          }],
+        });
+      }
+    }
+  } catch (err) {
+    console.error('Wallet connection failed:', err);
+  }
+}
+
+// Auto-reconnect if already authorized
+if (window.ethereum) {
+  window.ethereum.request({ method: 'eth_accounts' }).then(accounts => {
+    if (accounts.length > 0) {
+      userAccount = accounts[0];
+      const btn = document.getElementById('walletBtn');
+      btn.textContent = userAccount.slice(0, 6) + '...' + userAccount.slice(-4);
+      btn.classList.add('connected');
+    }
+  });
+  window.ethereum.on('accountsChanged', accounts => {
+    if (accounts.length === 0) {
+      userAccount = null;
+      const btn = document.getElementById('walletBtn');
+      btn.textContent = 'Connect Wallet';
+      btn.classList.remove('connected');
+    } else {
+      userAccount = accounts[0];
+      const btn = document.getElementById('walletBtn');
+      btn.textContent = userAccount.slice(0, 6) + '...' + userAccount.slice(-4);
+      btn.classList.add('connected');
+    }
+  });
+}
+
+async function fundTier(tier) {
+  const prices = { supporter: '0.05', builder: '0.25', architect: '1.0' };
+  const tokens = { supporter: '50,000', builder: '300,000', architect: '1,500,000' };
+  const methods = {
+    supporter: 'buySupporter',
+    builder:   'buyBuilder',
+    architect: 'buyArchitect',
+  };
+  // Function selectors (first 4 bytes of keccak256 of function signature)
+  const selectors = {
+    supporter: '0x85990c61', // buySupporter()
+    builder:   '0xbe5695be', // buyBuilder()
+    architect: '0x737d3236', // buyArchitect()
+  };
+
+  if (!userAccount) {
+    await connectWallet();
+    if (!userAccount) return;
+  }
+
+  const ethAmount = prices[tier];
+  const weiHex = '0x' + BigInt(Math.round(parseFloat(ethAmount) * 1e18)).toString(16);
+
+  try {
+    const txHash = await window.ethereum.request({
+      method: 'eth_sendTransaction',
+      params: [{
+        from: userAccount,
+        to: PRESALE_ADDRESS,
+        value: weiHex,
+        data: selectors[tier],
+      }],
+    });
+    alert(`Transaction sent! ${ethAmount} ETH for ${tokens[tier]} $WWWIII tokens.\n\nTx: ${txHash}\n\nView on Etherscan:\nhttps://sepolia.etherscan.io/tx/${txHash}`);
+  } catch (err) {
+    if (err.code === 4001) {
+      // User rejected
+    } else {
+      console.error('Transaction failed:', err);
+      alert('Transaction failed. Please check your wallet and try again.');
+    }
+  }
+}
+
+// ── Payment tab switching ──
+function switchPayTab(tab) {
+  document.querySelectorAll('.pay-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.pay-panel').forEach(p => p.style.display = 'none');
+  event.target.classList.add('active');
+  document.getElementById('panel-' + tab).style.display = 'block';
+}
+
 // ── Card payment ──
 let selectedCardAmount = 100;
+const TOKENS_PER_DOLLAR = 500; // 500 tokens per $1 (same as supporter rate: $125 ≈ 0.05 ETH → 50k tokens)
 
 function selectAmount(amt) {
   selectedCardAmount = amt;
@@ -937,12 +1111,11 @@ function selectAmount(amt) {
 }
 
 function updateCardPreview(amt) {
-  const proRata = ((amt / FUND_GOAL) * 100);
-  const display = proRata < 0.0001 ? proRata.toExponential(2) : proRata.toFixed(6);
+  const tokens = (amt * TOKENS_PER_DOLLAR).toLocaleString();
   document.getElementById('cardTokenPreview').innerHTML =
-    'Your pro rata share: <strong>' + display + '%</strong> of $WWWIII token supply';
-  const payBtn = document.querySelector('.card-donate .fund-btn-primary');
-  if (payBtn) payBtn.textContent = 'Donate $' + amt.toLocaleString();
+    'You\'ll receive approximately <strong>' + tokens + ' $WWWIII</strong> tokens';
+  const payBtn = document.querySelector('#panel-card .fund-btn-primary');
+  if (payBtn) payBtn.textContent = 'Pay $' + amt.toLocaleString();
 }
 
 // Update preview when custom input changes
@@ -953,47 +1126,29 @@ document.addEventListener('DOMContentLoaded', function() {
       const val = parseInt(this.value) || 0;
       selectedCardAmount = val;
       document.querySelectorAll('.card-amt').forEach(b => {
-          b.classList.toggle('active', parseInt(b.textContent.replace(/[$,]/g, '')) === val);
+        b.classList.toggle('active', parseInt(b.textContent.replace(/[$,]/g, '')) === val);
       });
       updateCardPreview(val);
     });
   }
 });
 
-async function payWithCard() {
+function payWithCard() {
   if (selectedCardAmount < 5) {
     alert('Minimum donation is $5.');
     return;
   }
-
-  const btn = document.querySelector('#panel-card .fund-btn-primary');
-  const origText = btn.textContent;
-  btn.textContent = 'Processing...';
-  btn.disabled = true;
-
-  try {
-    const res = await fetch('/api/create-checkout-session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        amount: selectedCardAmount,
-        walletAddress: userAccount || '',
-      }),
-    });
-    const data = await res.json();
-    if (data.url) {
-      window.location.href = data.url;
-    } else {
-      alert('Error: ' + (data.error || 'Could not create checkout session'));
-      btn.textContent = origText;
-      btn.disabled = false;
-    }
-  } catch (err) {
-    alert('Payment failed. Please try again.');
-    btn.textContent = origText;
-    btn.disabled = false;
+  // Stripe Checkout redirect — replace with your Stripe Payment Link
+  // For now, show setup instructions
+  if (typeof STRIPE_PAYMENT_LINK !== 'undefined' && STRIPE_PAYMENT_LINK) {
+    window.open(STRIPE_PAYMENT_LINK + '?amount=' + selectedCardAmount * 100, '_blank');
+  } else {
+    alert('Card payments coming soon! For now, use ETH to purchase tokens.\n\nTo enable card payments, set up a Stripe account at stripe.com and add your payment link.');
   }
 }
+
+// Set this to your Stripe Payment Link URL once created
+var STRIPE_PAYMENT_LINK = '';
 
 function copyAddress() {
   const el = document.getElementById('fundAddress');

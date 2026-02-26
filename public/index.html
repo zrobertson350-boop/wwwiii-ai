@@ -57,6 +57,39 @@ nav .wrap{display:flex;justify-content:space-between;align-items:center}
 .wallet-btn.connected{border-color:var(--green);color:var(--green)}
 .wallet-btn.connected:hover{background:rgba(0,230,118,.1)}
 
+/* ── PAYMENT TABS ── */
+.pay-tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:4px;margin-bottom:32px;max-width:400px;margin-left:auto;margin-right:auto}
+.pay-tab{flex:1;padding:10px 20px;border:none;border-radius:8px;font-family:var(--sans);font-size:14px;
+  font-weight:600;cursor:pointer;background:transparent;color:var(--muted);transition:all .2s;letter-spacing:.5px}
+.pay-tab.active{background:var(--accent);color:#fff}
+.pay-tab:hover:not(.active){color:var(--ink)}
+
+/* ── CARD PAYMENT ── */
+.card-donate{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:40px;max-width:520px;margin:0 auto}
+.card-donate-header{text-align:center;margin-bottom:32px}
+.card-donate-title{font-family:var(--sans);font-size:22px;font-weight:600;margin-bottom:8px}
+.card-donate-sub{color:var(--muted);font-size:14px;line-height:1.6}
+.card-amounts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px}
+.card-amt{padding:12px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--ink);
+  font-family:var(--sans);font-size:16px;font-weight:600;cursor:pointer;transition:all .2s}
+.card-amt:hover{border-color:var(--accent)}
+.card-amt.active{border-color:var(--accent);background:rgba(108,92,231,.15);color:var(--accent2)}
+.card-custom{margin-bottom:16px}
+.card-custom label{display:block;font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:2px;
+  text-transform:uppercase;margin-bottom:6px}
+.card-custom input{width:100%;padding:12px 16px;border:1px solid var(--border);border-radius:8px;
+  background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:18px;font-weight:600;
+  outline:none;transition:border-color .2s}
+.card-custom input:focus{border-color:var(--accent)}
+.card-token-preview{text-align:center;font-size:14px;color:var(--muted);padding:12px;
+  background:rgba(108,92,231,.06);border-radius:8px;margin-bottom:4px}
+.card-token-preview strong{color:var(--accent2)}
+.card-methods{display:flex;align-items:center;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap}
+.card-methods span:first-child{font-size:12px;color:var(--muted)}
+.method-badge{font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:4px 10px;
+  border:1px solid var(--border);border-radius:4px;color:var(--muted)}
+
 /* ── HERO ── */
 .hero{padding:180px 0 120px;text-align:center;position:relative}
 .hero-tag{display:inline-block;font-family:var(--mono);font-size:11px;text-transform:uppercase;
@@ -236,11 +269,11 @@ footer .f-links a{color:var(--muted)}
   <div class="wrap">
     <div class="nav-logo"><span>W</span>WW<span>III</span></div>
     <div class="nav-links">
+      <a href="#fund">Fund</a>
       <a href="#mission">Mission</a>
       <a href="#token">Token</a>
       <a href="#roadmap">Roadmap</a>
       <a href="/whitepaper.html">Whitepaper</a>
-      <a href="#fund">Fund</a>
       <a href="#contract">Contract</a>
     </div>
     <button class="wallet-btn" id="walletBtn" onclick="connectWallet()">Connect Wallet</button>
@@ -259,8 +292,8 @@ footer .f-links a{color:var(--muted)}
       Open weights. Open training. <strong>Built by everyone.</strong>
     </div>
     <div class="hero-cta">
-      <a href="#preamble" class="btn btn-primary">Read the Preamble</a>
-      <a href="#contract" class="btn btn-outline">View Contract</a>
+      <a href="#fund" class="btn btn-primary">Fund the Model</a>
+      <a href="/whitepaper.html" class="btn btn-outline">Read Whitepaper</a>
     </div>
   </div>
 </header>
@@ -287,6 +320,122 @@ footer .f-links a{color:var(--muted)}
     <span class="ticker-item"><span class="label">LICENSE</span><span class="val">Apache 2.0</span></span>
   </div>
 </div>
+
+<!-- FUND (PRIMARY SECTION) -->
+<section id="fund">
+  <div class="wrap">
+    <div class="section-tag">Fund the Model</div>
+    <div class="section-title">Back the build.</div>
+    <div class="section-desc">Every contribution goes directly to compute, researchers, and infrastructure.</div>
+
+    <div style="text-align:center;margin-bottom:48px">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px">Funding Goal</div>
+      <div style="font-family:var(--sans);font-size:clamp(48px,8vw,80px);font-weight:700;letter-spacing:-2px;background:linear-gradient(135deg,var(--accent2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent">$1,000,000,000</div>
+      <div style="font-family:var(--mono);font-size:13px;color:var(--muted);margin-top:4px;letter-spacing:1px">To train the first publicly built LLM</div>
+    </div>
+
+    <div class="fund-progress">
+      <div class="fund-progress-bar"><div class="fund-progress-fill" id="fundBar" style="width:0%"></div></div>
+      <div class="fund-progress-stats">
+        <span class="raised" id="fundRaised">$0 raised</span>
+        <span>$1,000,000,000</span>
+      </div>
+    </div>
+
+    <!-- PAYMENT METHOD TABS -->
+    <div class="pay-tabs">
+      <button class="pay-tab active" onclick="switchPayTab('crypto')">Crypto (ETH)</button>
+      <button class="pay-tab" onclick="switchPayTab('card')">Card / Apple Pay</button>
+    </div>
+
+    <!-- CRYPTO TAB -->
+    <div class="pay-panel" id="panel-crypto">
+      <div class="fund-tiers">
+        <div class="fund-tier">
+          <div class="fund-tier-name">Supporter</div>
+          <div class="fund-tier-price">0.05<span class="eth">ETH</span></div>
+          <div class="fund-tier-tokens">50,000 $WWWIII</div>
+          <ul class="fund-tier-perks">
+            <li>Early access to model checkpoints</li>
+            <li>DAO governance voting rights</li>
+            <li>Supporter badge on contributor wall</li>
+          </ul>
+          <button class="fund-btn fund-btn-outline" onclick="fundTier('supporter')">Buy with ETH</button>
+        </div>
+        <div class="fund-tier featured">
+          <div class="fund-tier-name">Builder</div>
+          <div class="fund-tier-price">0.25<span class="eth">ETH</span></div>
+          <div class="fund-tier-tokens">300,000 $WWWIII</div>
+          <ul class="fund-tier-perks">
+            <li>Everything in Supporter</li>
+            <li>Priority API access at launch</li>
+            <li>Name in model credits</li>
+            <li>Private Discord channel</li>
+          </ul>
+          <button class="fund-btn fund-btn-primary" onclick="fundTier('builder')">Buy with ETH</button>
+        </div>
+        <div class="fund-tier">
+          <div class="fund-tier-name">Architect</div>
+          <div class="fund-tier-price">1.0<span class="eth">ETH</span></div>
+          <div class="fund-tier-tokens">1,500,000 $WWWIII</div>
+          <ul class="fund-tier-perks">
+            <li>Everything in Builder</li>
+            <li>Vote on architecture decisions</li>
+            <li>Dedicated compute credit</li>
+            <li>Advisory council seat</li>
+          </ul>
+          <button class="fund-btn fund-btn-outline" onclick="fundTier('architect')">Buy with ETH</button>
+        </div>
+      </div>
+
+      <div class="fund-or">— OR SEND ETH DIRECTLY —</div>
+
+      <div class="fund-wallet">
+        <div class="fund-wallet-label">Presale Contract (Sepolia)</div>
+        <div class="fund-address" onclick="copyAddress()" id="fundAddress">
+          <code>0xCD26a62fc178129F4b24759c329e0c1867d4e613</code>
+          <span class="copy-hint">Click to copy</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD / APPLE PAY TAB -->
+    <div class="pay-panel" id="panel-card" style="display:none">
+      <div class="card-donate">
+        <div class="card-donate-header">
+          <div class="card-donate-title">Donate with Card or Apple Pay</div>
+          <div class="card-donate-sub">Fiat donations go directly to the WWWIII development treasury. You'll receive $WWWIII tokens to your wallet after purchase.</div>
+        </div>
+        <div class="card-amounts">
+          <button class="card-amt" onclick="selectAmount(25)">$25</button>
+          <button class="card-amt" onclick="selectAmount(50)">$50</button>
+          <button class="card-amt active" onclick="selectAmount(100)">$100</button>
+          <button class="card-amt" onclick="selectAmount(500)">$500</button>
+          <button class="card-amt" onclick="selectAmount(1000)">$1,000</button>
+          <button class="card-amt" onclick="selectAmount(5000)">$5,000</button>
+        </div>
+        <div class="card-custom">
+          <label for="customAmt">Custom amount (USD)</label>
+          <input type="number" id="customAmt" placeholder="Enter amount" min="5" step="1" value="100">
+        </div>
+        <div class="card-token-preview" id="cardTokenPreview">
+          You'll receive approximately <strong>50,000 $WWWIII</strong> tokens
+        </div>
+        <button class="fund-btn fund-btn-primary" style="width:100%;padding:16px;font-size:16px;margin-top:16px" onclick="payWithCard()">
+          Pay $100
+        </button>
+        <div class="card-methods">
+          <span>Accepted:</span>
+          <span class="method-badge">Visa</span>
+          <span class="method-badge">Mastercard</span>
+          <span class="method-badge">Apple Pay</span>
+          <span class="method-badge">Google Pay</span>
+          <span class="method-badge">AMEX</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- MISSION -->
 <section id="mission">
@@ -574,77 +723,6 @@ footer .f-links a{color:var(--muted)}
   </div>
 </section>
 
-<!-- FUND -->
-<section id="fund">
-  <div class="wrap">
-    <div class="section-tag">Fund the Model</div>
-    <div class="section-title">Back the build.</div>
-    <div class="section-desc">Every contribution goes directly to compute, researchers, and infrastructure. Pick a tier or send ETH directly.</div>
-
-    <div style="text-align:center;margin-bottom:48px">
-      <div style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px">Funding Goal</div>
-      <div style="font-family:var(--sans);font-size:clamp(48px,8vw,80px);font-weight:700;letter-spacing:-2px;background:linear-gradient(135deg,var(--accent2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent">$1,000,000,000</div>
-      <div style="font-family:var(--mono);font-size:13px;color:var(--muted);margin-top:4px;letter-spacing:1px">To train the first publicly built LLM</div>
-    </div>
-
-    <div class="fund-progress">
-      <div class="fund-progress-bar"><div class="fund-progress-fill" id="fundBar" style="width:0%"></div></div>
-      <div class="fund-progress-stats">
-        <span class="raised" id="fundRaised">$0 raised — presale opening soon</span>
-        <span>$1,000,000,000</span>
-      </div>
-    </div>
-
-    <div class="fund-tiers">
-      <div class="fund-tier">
-        <div class="fund-tier-name">Supporter</div>
-        <div class="fund-tier-price">0.05<span class="eth">ETH</span></div>
-        <div class="fund-tier-tokens">50,000 $WWWIII</div>
-        <ul class="fund-tier-perks">
-          <li>Early access to model checkpoints</li>
-          <li>DAO governance voting rights</li>
-          <li>Supporter badge on contributor wall</li>
-        </ul>
-        <button class="fund-btn fund-btn-outline" onclick="fundTier('supporter')">Select</button>
-      </div>
-      <div class="fund-tier featured">
-        <div class="fund-tier-name">Builder</div>
-        <div class="fund-tier-price">0.25<span class="eth">ETH</span></div>
-        <div class="fund-tier-tokens">300,000 $WWWIII</div>
-        <ul class="fund-tier-perks">
-          <li>Everything in Supporter</li>
-          <li>Priority API access at launch</li>
-          <li>Name in model credits</li>
-          <li>Private Discord channel</li>
-        </ul>
-        <button class="fund-btn fund-btn-primary" onclick="fundTier('builder')">Select</button>
-      </div>
-      <div class="fund-tier">
-        <div class="fund-tier-name">Architect</div>
-        <div class="fund-tier-price">1.0<span class="eth">ETH</span></div>
-        <div class="fund-tier-tokens">1,500,000 $WWWIII</div>
-        <ul class="fund-tier-perks">
-          <li>Everything in Builder</li>
-          <li>Vote on architecture decisions</li>
-          <li>Dedicated compute credit</li>
-          <li>Advisory council seat</li>
-        </ul>
-        <button class="fund-btn fund-btn-outline" onclick="fundTier('architect')">Select</button>
-      </div>
-    </div>
-
-    <div class="fund-or">— OR SEND DIRECTLY —</div>
-
-    <div class="fund-wallet">
-      <div class="fund-wallet-label">Presale Contract (Sepolia)</div>
-      <div class="fund-address" onclick="copyAddress()" id="fundAddress">
-        <code>0xCD26a62fc178129F4b24759c329e0c1867d4e613</code>
-        <span class="copy-hint">Click to copy</span>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- FOOTER -->
 <footer>
   <div class="wrap">
@@ -857,6 +935,66 @@ async function fundTier(tier) {
     }
   }
 }
+
+// ── Payment tab switching ──
+function switchPayTab(tab) {
+  document.querySelectorAll('.pay-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.pay-panel').forEach(p => p.style.display = 'none');
+  event.target.classList.add('active');
+  document.getElementById('panel-' + tab).style.display = 'block';
+}
+
+// ── Card payment ──
+let selectedCardAmount = 100;
+const TOKENS_PER_DOLLAR = 500; // 500 tokens per $1 (same as supporter rate: $125 ≈ 0.05 ETH → 50k tokens)
+
+function selectAmount(amt) {
+  selectedCardAmount = amt;
+  document.querySelectorAll('.card-amt').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('customAmt').value = amt;
+  updateCardPreview(amt);
+}
+
+function updateCardPreview(amt) {
+  const tokens = (amt * TOKENS_PER_DOLLAR).toLocaleString();
+  document.getElementById('cardTokenPreview').innerHTML =
+    'You\'ll receive approximately <strong>' + tokens + ' $WWWIII</strong> tokens';
+  const payBtn = document.querySelector('#panel-card .fund-btn-primary');
+  if (payBtn) payBtn.textContent = 'Pay $' + amt.toLocaleString();
+}
+
+// Update preview when custom input changes
+document.addEventListener('DOMContentLoaded', function() {
+  const input = document.getElementById('customAmt');
+  if (input) {
+    input.addEventListener('input', function() {
+      const val = parseInt(this.value) || 0;
+      selectedCardAmount = val;
+      document.querySelectorAll('.card-amt').forEach(b => {
+        b.classList.toggle('active', parseInt(b.textContent.replace(/[$,]/g, '')) === val);
+      });
+      updateCardPreview(val);
+    });
+  }
+});
+
+function payWithCard() {
+  if (selectedCardAmount < 5) {
+    alert('Minimum donation is $5.');
+    return;
+  }
+  // Stripe Checkout redirect — replace with your Stripe Payment Link
+  // For now, show setup instructions
+  if (typeof STRIPE_PAYMENT_LINK !== 'undefined' && STRIPE_PAYMENT_LINK) {
+    window.open(STRIPE_PAYMENT_LINK + '?amount=' + selectedCardAmount * 100, '_blank');
+  } else {
+    alert('Card payments coming soon! For now, use ETH to purchase tokens.\n\nTo enable card payments, set up a Stripe account at stripe.com and add your payment link.');
+  }
+}
+
+// Set this to your Stripe Payment Link URL once created
+var STRIPE_PAYMENT_LINK = '';
 
 function copyAddress() {
   const el = document.getElementById('fundAddress');

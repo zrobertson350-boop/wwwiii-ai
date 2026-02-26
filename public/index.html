@@ -387,12 +387,48 @@ footer .f-links a{color:var(--muted)}
 
     <!-- PAYMENT METHOD TABS -->
     <div class="pay-tabs">
-      <button class="pay-tab active" onclick="switchPayTab('crypto')">Crypto (ETH)</button>
-      <button class="pay-tab" onclick="switchPayTab('card')">Card / Apple Pay</button>
+      <button class="pay-tab active" onclick="switchPayTab('card')">Card / Apple Pay</button>
+      <button class="pay-tab" onclick="switchPayTab('crypto')">Crypto (ETH)</button>
+    </div>
+
+    <!-- CARD / APPLE PAY TAB (DEFAULT) -->
+    <div class="pay-panel" id="panel-card">
+      <div class="card-donate">
+        <div class="card-donate-header">
+          <div class="card-donate-title">Donate to the AI Fund</div>
+          <div class="card-donate-sub">100% of your donation goes toward compute, researchers, and infrastructure to build the People's AI. All donors will receive <strong>$WWWIII governance tokens</strong> when the token launches — matched to the amount you contributed.</div>
+        </div>
+        <div class="card-amounts">
+          <button class="card-amt" onclick="selectAmount(10)">$10</button>
+          <button class="card-amt" onclick="selectAmount(25)">$25</button>
+          <button class="card-amt active" onclick="selectAmount(100)">$100</button>
+          <button class="card-amt" onclick="selectAmount(500)">$500</button>
+          <button class="card-amt" onclick="selectAmount(1000)">$1,000</button>
+          <button class="card-amt" onclick="selectAmount(5000)">$5,000</button>
+        </div>
+        <div class="card-custom">
+          <label for="customAmt">Custom amount (USD)</label>
+          <input type="number" id="customAmt" placeholder="Enter amount" min="5" step="1" value="100">
+        </div>
+        <div class="card-token-preview" id="cardTokenPreview">
+          You'll receive <strong>50,000 $WWWIII</strong> tokens when the token launches
+        </div>
+        <button class="fund-btn fund-btn-primary" style="width:100%;padding:16px;font-size:16px;margin-top:16px" onclick="payWithCard()">
+          Donate $100
+        </button>
+        <div class="card-methods">
+          <span>Accepted:</span>
+          <span class="method-badge">Visa</span>
+          <span class="method-badge">Mastercard</span>
+          <span class="method-badge">Apple Pay</span>
+          <span class="method-badge">Google Pay</span>
+          <span class="method-badge">AMEX</span>
+        </div>
+      </div>
     </div>
 
     <!-- CRYPTO TAB -->
-    <div class="pay-panel" id="panel-crypto">
+    <div class="pay-panel" id="panel-crypto" style="display:none">
       <div class="fund-tiers">
         <div class="fund-tier">
           <div class="fund-tier-name">Supporter</div>
@@ -403,7 +439,7 @@ footer .f-links a{color:var(--muted)}
             <li>DAO governance voting rights</li>
             <li>Supporter badge on contributor wall</li>
           </ul>
-          <button class="fund-btn fund-btn-outline" onclick="fundTier('supporter')">Buy with ETH</button>
+          <button class="fund-btn fund-btn-outline" onclick="fundTier('supporter')">Donate with ETH</button>
         </div>
         <div class="fund-tier featured">
           <div class="fund-tier-name">Builder</div>
@@ -415,7 +451,7 @@ footer .f-links a{color:var(--muted)}
             <li>Name in model credits</li>
             <li>Private Discord channel</li>
           </ul>
-          <button class="fund-btn fund-btn-primary" onclick="fundTier('builder')">Buy with ETH</button>
+          <button class="fund-btn fund-btn-primary" onclick="fundTier('builder')">Donate with ETH</button>
         </div>
         <div class="fund-tier">
           <div class="fund-tier-name">Architect</div>
@@ -427,53 +463,17 @@ footer .f-links a{color:var(--muted)}
             <li>Dedicated compute credit</li>
             <li>Advisory council seat</li>
           </ul>
-          <button class="fund-btn fund-btn-outline" onclick="fundTier('architect')">Buy with ETH</button>
+          <button class="fund-btn fund-btn-outline" onclick="fundTier('architect')">Donate with ETH</button>
         </div>
       </div>
 
       <div class="fund-or">— OR SEND ETH DIRECTLY —</div>
 
       <div class="fund-wallet">
-        <div class="fund-wallet-label">Presale Contract (Sepolia)</div>
+        <div class="fund-wallet-label">Treasury Wallet (Ethereum)</div>
         <div class="fund-address" onclick="copyAddress()" id="fundAddress">
-          <code>0xCD26a62fc178129F4b24759c329e0c1867d4e613</code>
+          <code>0xda04fb01682DBFBF3f7ac30B2FEc251c7e72C6B9</code>
           <span class="copy-hint">Click to copy</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- CARD / APPLE PAY TAB -->
-    <div class="pay-panel" id="panel-card" style="display:none">
-      <div class="card-donate">
-        <div class="card-donate-header">
-          <div class="card-donate-title">Donate with Card or Apple Pay</div>
-          <div class="card-donate-sub">Fiat donations go directly to the WWWIII development treasury. You'll receive $WWWIII tokens to your wallet after purchase.</div>
-        </div>
-        <div class="card-amounts">
-          <button class="card-amt" onclick="selectAmount(25)">$25</button>
-          <button class="card-amt" onclick="selectAmount(50)">$50</button>
-          <button class="card-amt active" onclick="selectAmount(100)">$100</button>
-          <button class="card-amt" onclick="selectAmount(500)">$500</button>
-          <button class="card-amt" onclick="selectAmount(1000)">$1,000</button>
-          <button class="card-amt" onclick="selectAmount(5000)">$5,000</button>
-        </div>
-        <div class="card-custom">
-          <label for="customAmt">Custom amount (USD)</label>
-          <input type="number" id="customAmt" placeholder="Enter amount" min="5" step="1" value="100">
-        </div>
-        <div class="card-token-preview" id="cardTokenPreview">
-          You'll receive approximately <strong>50,000 $WWWIII</strong> tokens
-        </div>
-        <button class="fund-btn fund-btn-primary" style="width:100%;padding:16px;font-size:16px;margin-top:16px" onclick="payWithCard()">
-          Pay $100
-        </button>
-        <div class="card-methods">
-          <span>Accepted:</span>
-          <span class="method-badge">Visa</span>
-          <span class="method-badge">Mastercard</span>
-          <span class="method-badge">Apple Pay</span>
-          <span class="method-badge">Google Pay</span>
-          <span class="method-badge">AMEX</span>
         </div>
       </div>
     </div>
@@ -1044,9 +1044,9 @@ function selectAmount(amt) {
 function updateCardPreview(amt) {
   const tokens = (amt * TOKENS_PER_DOLLAR).toLocaleString();
   document.getElementById('cardTokenPreview').innerHTML =
-    'You\'ll receive approximately <strong>' + tokens + ' $WWWIII</strong> tokens';
+    'You\'ll receive <strong>' + tokens + ' $WWWIII</strong> tokens when the token launches';
   const payBtn = document.querySelector('#panel-card .fund-btn-primary');
-  if (payBtn) payBtn.textContent = 'Pay $' + amt.toLocaleString();
+  if (payBtn) payBtn.textContent = 'Donate $' + amt.toLocaleString();
 }
 
 // Update preview when custom input changes

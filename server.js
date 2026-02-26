@@ -33,8 +33,8 @@ app.post('/api/create-checkout-session', async (req, res) => {
         price_data: {
           currency: 'usd',
           product_data: {
-            name: 'WWWIII — Fund the People\'s AI',
-            description: `Donation of $${(cents / 100).toLocaleString()} to fund the first publicly built LLM. Tokens will be distributed to your wallet.`,
+            name: 'WWWIII — Donate to the AI Fund',
+            description: `Donation to fund the first publicly built LLM. You will receive $WWWIII tokens matched to your contribution when the token launches.`,
           },
           unit_amount: cents,
         },
@@ -55,10 +55,13 @@ app.post('/api/create-checkout-session', async (req, res) => {
   }
 });
 
-// Funding total — aggregates Stripe payments
+// Funding total — aggregates all donations
+// Base amount covers any donations tracked before Stripe (or manual additions)
+const BASE_FUNDED_USD = 25; // Initial seed funding
+
 app.get('/api/funding-total', async (req, res) => {
   try {
-    // Sum all successful Stripe payments
+    // Sum all successful Stripe payments (non-refunded)
     let totalCents = 0;
     let hasMore = true;
     let startingAfter = null;
@@ -81,14 +84,13 @@ app.get('/api/funding-total', async (req, res) => {
       }
     }
 
-    const totalUSD = totalCents / 100;
+    const stripeUSD = totalCents / 100;
+    const totalUSD = stripeUSD + BASE_FUNDED_USD;
 
-    // TODO: Also add ETH presale value by reading contract totalRaised and converting via price API
-
-    res.json({ totalUSD, stripeUSD: totalUSD });
+    res.json({ totalUSD, stripeUSD, baseUSD: BASE_FUNDED_USD });
   } catch (err) {
     console.error('Funding total error:', err.message);
-    res.json({ totalUSD: 0, stripeUSD: 0 });
+    res.json({ totalUSD: BASE_FUNDED_USD, stripeUSD: 0, baseUSD: BASE_FUNDED_USD });
   }
 });
 

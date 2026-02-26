@@ -151,6 +151,41 @@ section{padding:100px 0}
 .contract-code .cm{color:#555}
 .contract-code .num{color:var(--red)}
 
+/* ── FUND ── */
+.fund-tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-bottom:48px}
+.fund-tier{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:32px;position:relative;transition:border-color .3s,transform .3s}
+.fund-tier:hover{border-color:var(--accent);transform:translateY(-2px)}
+.fund-tier.featured{border-color:var(--accent);box-shadow:0 0 40px rgba(108,92,231,.15)}
+.fund-tier.featured::before{content:'MOST POPULAR';position:absolute;top:-11px;left:50%;transform:translateX(-50%);
+  font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--bg);background:var(--accent);
+  padding:3px 14px;border-radius:100px}
+.fund-tier-name{font-family:var(--sans);font-size:14px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px}
+.fund-tier-price{font-family:var(--sans);font-size:36px;font-weight:700;margin-bottom:4px}
+.fund-tier-price .eth{font-size:16px;color:var(--muted);font-weight:400;margin-left:4px}
+.fund-tier-tokens{font-family:var(--mono);font-size:13px;color:var(--accent2);margin-bottom:20px}
+.fund-tier-perks{list-style:none;margin-bottom:24px}
+.fund-tier-perks li{color:var(--muted);font-size:13px;line-height:2;padding-left:20px;position:relative}
+.fund-tier-perks li::before{content:'✓';position:absolute;left:0;color:var(--green);font-weight:700}
+.fund-btn{display:block;width:100%;padding:12px;border:none;border-radius:8px;font-family:var(--sans);
+  font-size:14px;font-weight:600;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .25s}
+.fund-btn-primary{background:var(--accent);color:#fff}
+.fund-btn-primary:hover{background:var(--accent2)}
+.fund-btn-outline{background:transparent;color:var(--ink);border:1px solid var(--border)}
+.fund-btn-outline:hover{border-color:var(--accent2);color:var(--accent2)}
+.fund-wallet{text-align:center;margin-top:16px}
+.fund-wallet-label{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
+.fund-address{display:inline-flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;padding:12px 20px;cursor:pointer;transition:border-color .3s}
+.fund-address:hover{border-color:var(--accent)}
+.fund-address code{font-family:var(--mono);font-size:13px;color:var(--accent2);letter-spacing:.5px}
+.fund-address .copy-hint{font-size:11px;color:var(--muted)}
+.fund-or{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:3px;text-align:center;margin:32px 0}
+.fund-progress{margin-bottom:48px}
+.fund-progress-bar{height:8px;background:var(--surface2);border-radius:100px;overflow:hidden;margin-bottom:12px}
+.fund-progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:100px;transition:width 1s ease-out}
+.fund-progress-stats{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.fund-progress-stats .raised{color:var(--accent2)}
+
 /* ── COMMUNITY ── */
 .comm-row{display:flex;gap:16px;flex-wrap:wrap}
 .comm-card{flex:1;min-width:200px;background:var(--surface);border:1px solid var(--border);
@@ -198,6 +233,7 @@ footer .f-links a{color:var(--muted)}
       <a href="#token">Token</a>
       <a href="#roadmap">Roadmap</a>
       <a href="#paper">Paper</a>
+      <a href="#fund">Fund</a>
       <a href="#contract">Contract</a>
     </div>
   </div>
@@ -530,6 +566,77 @@ footer .f-links a{color:var(--muted)}
   </div>
 </section>
 
+<!-- FUND -->
+<section id="fund">
+  <div class="wrap">
+    <div class="section-tag">Fund the Model</div>
+    <div class="section-title">Back the build.</div>
+    <div class="section-desc">Every contribution goes directly to compute, researchers, and infrastructure. Pick a tier or send ETH directly.</div>
+
+    <div style="text-align:center;margin-bottom:48px">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px">Funding Goal</div>
+      <div style="font-family:var(--sans);font-size:clamp(48px,8vw,80px);font-weight:700;letter-spacing:-2px;background:linear-gradient(135deg,var(--accent2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent">$1,000,000</div>
+      <div style="font-family:var(--mono);font-size:13px;color:var(--muted);margin-top:4px;letter-spacing:1px">To train the first publicly built LLM</div>
+    </div>
+
+    <div class="fund-progress">
+      <div class="fund-progress-bar"><div class="fund-progress-fill" id="fundBar" style="width:0%"></div></div>
+      <div class="fund-progress-stats">
+        <span class="raised" id="fundRaised">$0 raised — presale opening soon</span>
+        <span>$1,000,000</span>
+      </div>
+    </div>
+
+    <div class="fund-tiers">
+      <div class="fund-tier">
+        <div class="fund-tier-name">Supporter</div>
+        <div class="fund-tier-price">0.05<span class="eth">ETH</span></div>
+        <div class="fund-tier-tokens">50,000 $WWWIII</div>
+        <ul class="fund-tier-perks">
+          <li>Early access to model checkpoints</li>
+          <li>DAO governance voting rights</li>
+          <li>Supporter badge on contributor wall</li>
+        </ul>
+        <button class="fund-btn fund-btn-outline" onclick="fundTier('supporter')">Select</button>
+      </div>
+      <div class="fund-tier featured">
+        <div class="fund-tier-name">Builder</div>
+        <div class="fund-tier-price">0.25<span class="eth">ETH</span></div>
+        <div class="fund-tier-tokens">300,000 $WWWIII</div>
+        <ul class="fund-tier-perks">
+          <li>Everything in Supporter</li>
+          <li>Priority API access at launch</li>
+          <li>Name in model credits</li>
+          <li>Private Discord channel</li>
+        </ul>
+        <button class="fund-btn fund-btn-primary" onclick="fundTier('builder')">Select</button>
+      </div>
+      <div class="fund-tier">
+        <div class="fund-tier-name">Architect</div>
+        <div class="fund-tier-price">1.0<span class="eth">ETH</span></div>
+        <div class="fund-tier-tokens">1,500,000 $WWWIII</div>
+        <ul class="fund-tier-perks">
+          <li>Everything in Builder</li>
+          <li>Vote on architecture decisions</li>
+          <li>Dedicated compute credit</li>
+          <li>Advisory council seat</li>
+        </ul>
+        <button class="fund-btn fund-btn-outline" onclick="fundTier('architect')">Select</button>
+      </div>
+    </div>
+
+    <div class="fund-or">— OR SEND DIRECTLY —</div>
+
+    <div class="fund-wallet">
+      <div class="fund-wallet-label">Treasury Wallet (Ethereum)</div>
+      <div class="fund-address" onclick="copyAddress()" id="fundAddress">
+        <code>Contract address TBD — deploying soon</code>
+        <span class="copy-hint">Click to copy</span>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- FOOTER -->
 <footer>
   <div class="wrap">
@@ -540,6 +647,7 @@ footer .f-links a{color:var(--muted)}
       <a href="#token">Token</a>
       <a href="#roadmap">Roadmap</a>
       <a href="#paper">Paper</a>
+      <a href="#fund">Fund</a>
       <a href="#contract">Contract</a>
     </div>
   </div>
@@ -609,5 +717,25 @@ footer .f-links a{color:var(--muted)}
 })();
 </script>
 
+<script>
+function fundTier(tier){
+  const prices={supporter:'0.05',builder:'0.25',architect:'1.0'};
+  const tokens={supporter:'50,000',builder:'300,000',architect:'1,500,000'};
+  alert(`${tier.charAt(0).toUpperCase()+tier.slice(1)} tier selected — ${prices[tier]} ETH for ${tokens[tier]} $WWWIII.\n\nWallet connect launching soon. Join the waitlist.`);
+}
+function copyAddress(){
+  const el=document.getElementById('fundAddress');
+  const code=el.querySelector('code');
+  if(code.textContent.includes('TBD')){
+    alert('Contract not yet deployed. Coming soon.');
+    return;
+  }
+  navigator.clipboard.writeText(code.textContent).then(()=>{
+    const hint=el.querySelector('.copy-hint');
+    hint.textContent='Copied!';
+    setTimeout(()=>hint.textContent='Click to copy',2000);
+  });
+}
+</script>
 </body>
 </html>

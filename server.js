@@ -58,7 +58,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
 
 // Funding total — aggregates all donations
 // Base amount covers any donations tracked before Stripe (or manual additions)
-const BASE_FUNDED_USD = 25; // Seed donation from founder
+const BASE_FUNDED_USD = 0; // All donations tracked via Stripe
 
 app.get('/api/funding-total', async (req, res) => {
   try {
@@ -98,7 +98,7 @@ app.get('/api/funding-total', async (req, res) => {
 
 // Seed donors (before Stripe tracking)
 const SEED_DONORS = [
-  { name: 'Zachariah R.', amount: 25, timeAgo: 'founder', date: '2026-02-26T21:22:04.000Z' },
+  { name: 'ZRR', amount: 25, timeAgo: 'Founder/CEO Donation', date: '2026-02-26T21:22:04.000Z' },
 ];
 
 // Donor list — recent successful donations
@@ -115,21 +115,27 @@ app.get('/api/donors', async (req, res) => {
       const pi = s.payment_intent;
       if (pi && pi.status === 'succeeded' && pi.amount_received > (pi.amount_refunded || 0)) {
         const netCents = pi.amount_received - (pi.amount_refunded || 0);
-        const name = s.customer_details?.name || 'Anonymous';
-        const parts = name.trim().split(' ');
-        const displayName = parts.length > 1
-          ? parts[0] + ' ' + parts[parts.length - 1][0] + '.'
-          : parts[0];
-
+        const amount = netCents / 100;
         const created = new Date(s.created * 1000);
-        const ago = timeAgo(created);
 
-        donors.push({
-          name: displayName,
-          amount: netCents / 100,
-          timeAgo: ago,
-          date: created.toISOString(),
-        });
+        // Skip Stripe entries that duplicate a seed donor (same amount, within 24h)
+        const isDupe = SEED_DONORS.some(sd =>
+          Math.abs(amount - sd.amount) < 1 &&
+          Math.abs(created.getTime() - new Date(sd.date).getTime()) < 86400000
+        );
+        if (isDupe) continue;
+
+        const rawName = (s.customer_details?.name || '').trim();
+        let displayName = 'Anonymous';
+        if (rawName.length > 1) {
+          const parts = rawName.split(' ');
+          displayName = parts.length > 1
+            ? parts[0] + ' ' + parts[parts.length - 1][0] + '.'
+            : parts[0];
+        }
+
+        const ago = timeAgo(created);
+        donors.push({ name: displayName, amount, timeAgo: ago, date: created.toISOString() });
       }
     }
 

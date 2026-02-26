@@ -138,15 +138,34 @@ nav .wrap{display:flex;justify-content:space-between;align-items:center}
 .btn-outline{background:transparent;color:var(--ink);border:1px solid var(--border)}
 .btn-outline:hover{border-color:var(--accent2);color:var(--accent2)}
 
-/* ── LIVE TICKER ── */
-.ticker-bar{border-top:1px solid var(--border);border-bottom:1px solid var(--border);
-  padding:12px 0;overflow:hidden;white-space:nowrap;position:relative}
-.ticker-track{display:inline-block;animation:ticker 40s linear infinite}
-.ticker-item{display:inline;font-family:var(--mono);font-size:12px;color:var(--muted);
-  padding:0 40px;letter-spacing:1px}
-.ticker-item .label{color:var(--accent2);margin-right:8px}
-.ticker-item .val{color:var(--ink)}
-@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+/* ── PROTOCOL STATS ── */
+.proto-strip{border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+  background:linear-gradient(180deg,rgba(12,12,18,.95),rgba(5,5,8,.98));
+  padding:48px 0;position:relative;overflow:hidden}
+.proto-strip::before{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(108,92,231,.015) 2px,rgba(108,92,231,.015) 4px);
+  pointer-events:none}
+.proto-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;
+  background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.proto-cell{background:var(--bg);padding:28px 20px;text-align:center;position:relative;
+  transition:background .4s}
+.proto-cell:hover{background:rgba(108,92,231,.04)}
+.proto-cell::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0;
+  transition:opacity .4s}
+.proto-cell:hover::after{opacity:1}
+.proto-label{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:10px}
+.proto-val{font-family:var(--sans);font-size:clamp(18px,2.5vw,24px);font-weight:700;color:var(--ink);
+  line-height:1.2}
+.proto-val .proto-highlight{color:var(--accent2)}
+.proto-val .proto-unit{font-size:.6em;color:var(--muted);font-weight:400;margin-left:2px}
+.proto-tag{display:inline-block;margin-top:8px;font-family:var(--mono);font-size:9px;
+  letter-spacing:1px;padding:2px 8px;border-radius:3px;color:var(--green);
+  background:rgba(0,230,118,.08);border:1px solid rgba(0,230,118,.15)}
+.proto-tag.pending{color:var(--gold);background:rgba(240,192,64,.08);border-color:rgba(240,192,64,.15)}
+@media(max-width:600px){.proto-grid{grid-template-columns:repeat(2,1fr)}
+  .proto-cell{padding:20px 12px}}
 
 /* ── SECTION ── */
 section{padding:100px 0}
@@ -568,6 +587,42 @@ footer .f-links a{color:var(--muted)}
     </div>
   </div>
 </section>
+
+<!-- PROTOCOL STATS -->
+<div class="proto-strip">
+  <div class="wrap">
+    <div class="proto-grid">
+      <div class="proto-cell">
+        <div class="proto-label">Token</div>
+        <div class="proto-val"><span class="proto-highlight">$WWWIII</span></div>
+        <div class="proto-tag">ERC-20</div>
+      </div>
+      <div class="proto-cell">
+        <div class="proto-label">Network</div>
+        <div class="proto-val">Ethereum</div>
+        <div class="proto-tag pending">Sepolia</div>
+      </div>
+      <div class="proto-cell">
+        <div class="proto-label">Total Supply</div>
+        <div class="proto-val">1<span class="proto-unit">B</span></div>
+      </div>
+      <div class="proto-cell">
+        <div class="proto-label">Model Target</div>
+        <div class="proto-val">70<span class="proto-unit">B params</span></div>
+      </div>
+      <div class="proto-cell">
+        <div class="proto-label">License</div>
+        <div class="proto-val">Apache<span class="proto-unit">2.0</span></div>
+        <div class="proto-tag">Open Source</div>
+      </div>
+      <div class="proto-cell">
+        <div class="proto-label">Status</div>
+        <div class="proto-val"><span class="proto-highlight">Building</span></div>
+        <div class="proto-tag pending">Phase 1</div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- AI DEMO -->
 <section id="demo">

@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WWWIII — Funding the First Publicly Built AI</title>
+<meta name="description" content="WWWIII is a token funding the first publicly developed and created large language model. Open development. Open weights. Built by everyone.">
+<meta property="og:title" content="WWWIII — The People's AI">
+<meta property="og:description" content="A token funding the first publicly developed and created LLM. Open development. Open weights. Built by everyone.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#050508;--surface:#0c0c12;--surface2:#12121c;--border:#1a1a2e;
+  --ink:#e8e8f0;--muted:#8888a0;--accent:#6c5ce7;--accent2:#a29bfe;
+  --red:#ff3838;--gold:#f0c040;--green:#00e676;
+  --mono:'JetBrains Mono',monospace;--sans:'Space Grotesk',sans-serif;--body:'Inter',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);line-height:1.7;overflow-x:hidden}
+::selection{background:var(--accent);color:#fff}
+a{color:var(--accent2);text-decoration:none;transition:color .2s}
+a:hover{color:var(--gold)}
+
+/* ── GRID BACKGROUND ── */
+.grid-bg{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(108,92,231,.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(108,92,231,.04) 1px,transparent 1px);
+  background-size:60px 60px}
+
+/* ── GLOW ORB ── */
+.glow-orb{position:fixed;width:600px;height:600px;border-radius:50%;pointer-events:none;z-index:0;
+  background:radial-gradient(circle,rgba(108,92,231,.12) 0%,transparent 70%);
+  top:-100px;left:50%;transform:translateX(-50%);animation:orbFloat 12s ease-in-out infinite}
+@keyframes orbFloat{0%,100%{top:-100px;opacity:.6}50%{top:-60px;opacity:1}}
+
+.wrap{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 24px}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 0;
+  background:rgba(5,5,8,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+nav .wrap{display:flex;justify-content:space-between;align-items:center}
+.nav-logo{font-family:var(--mono);font-size:18px;font-weight:700;letter-spacing:4px;color:var(--ink)}
+.nav-logo span{color:var(--accent2)}
+.nav-links{display:flex;gap:28px;font-size:13px;font-weight:500;text-transform:uppercase;letter-spacing:2px}
+.nav-links a{color:var(--muted);transition:color .2s}
+.nav-links a:hover{color:var(--ink)}
+
+/* ── HERO ── */
+.hero{padding:180px 0 120px;text-align:center;position:relative}
+.hero-tag{display:inline-block;font-family:var(--mono);font-size:11px;text-transform:uppercase;
+  letter-spacing:4px;color:var(--accent2);border:1px solid var(--border);padding:6px 18px;border-radius:100px;
+  margin-bottom:32px}
+.hero h1{font-family:var(--sans);font-size:clamp(52px,8vw,96px);font-weight:700;line-height:1;
+  letter-spacing:-2px;margin-bottom:24px}
+.hero h1 .w{color:var(--accent2)}
+.hero h1 .iii{color:var(--red);font-style:italic}
+.hero-sub{font-size:clamp(17px,2.2vw,22px);color:var(--muted);max-width:640px;margin:0 auto 48px;
+  font-weight:300;line-height:1.6}
+.hero-sub strong{color:var(--ink);font-weight:500}
+.hero-cta{display:inline-flex;gap:16px;flex-wrap:wrap;justify-content:center}
+.btn{display:inline-block;padding:14px 36px;border-radius:8px;font-family:var(--sans);
+  font-size:15px;font-weight:600;letter-spacing:1px;text-transform:uppercase;transition:all .25s;cursor:pointer;border:none}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 0 30px rgba(108,92,231,.3)}
+.btn-primary:hover{background:var(--accent2);box-shadow:0 0 50px rgba(162,155,254,.4);color:#fff;transform:translateY(-1px)}
+.btn-outline{background:transparent;color:var(--ink);border:1px solid var(--border)}
+.btn-outline:hover{border-color:var(--accent2);color:var(--accent2)}
+
+/* ── LIVE TICKER ── */
+.ticker-bar{border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+  padding:12px 0;overflow:hidden;white-space:nowrap;position:relative}
+.ticker-track{display:inline-block;animation:ticker 40s linear infinite}
+.ticker-item{display:inline;font-family:var(--mono);font-size:12px;color:var(--muted);
+  padding:0 40px;letter-spacing:1px}
+.ticker-item .label{color:var(--accent2);margin-right:8px}
+.ticker-item .val{color:var(--ink)}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* ── SECTION ── */
+section{padding:100px 0}
+.section-tag{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:4px;
+  color:var(--accent2);margin-bottom:12px}
+.section-title{font-family:var(--sans);font-size:clamp(32px,4vw,48px);font-weight:700;
+  letter-spacing:-1px;margin-bottom:16px}
+.section-desc{color:var(--muted);font-size:17px;max-width:560px;line-height:1.7;margin-bottom:48px}
+
+/* ── MISSION ── */
+.mission-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px}
+.mission-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:36px;
+  transition:border-color .3s,transform .3s}
+.mission-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.mission-icon{font-size:32px;margin-bottom:16px}
+.mission-card h3{font-family:var(--sans);font-size:20px;font-weight:600;margin-bottom:8px}
+.mission-card p{color:var(--muted);font-size:14px;line-height:1.7}
+
+/* ── TOKENOMICS ── */
+.token-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+@media(max-width:768px){.token-grid{grid-template-columns:1fr}}
+.token-chart{position:relative;width:100%;aspect-ratio:1;max-width:380px;margin:0 auto}
+.token-ring{position:absolute;inset:0}
+.token-ring svg{width:100%;height:100%}
+.token-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.token-total{font-family:var(--mono);font-size:13px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+.token-supply{font-family:var(--sans);font-size:clamp(28px,4vw,36px);font-weight:700;margin:4px 0}
+.token-symbol{font-family:var(--mono);font-size:14px;color:var(--accent2);letter-spacing:3px}
+.token-legend{display:flex;flex-direction:column;gap:16px}
+.token-leg-item{display:flex;align-items:center;gap:12px;font-size:15px}
+.token-leg-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+.token-leg-pct{font-family:var(--mono);color:var(--muted);min-width:40px;font-size:13px}
+.token-leg-label{color:var(--ink)}
+.token-leg-desc{color:var(--muted);font-size:12px;margin-left:64px;margin-top:-8px}
+
+/* ── ROADMAP ── */
+.roadmap{position:relative}
+.roadmap::before{content:'';position:absolute;left:20px;top:0;bottom:0;width:1px;background:var(--border)}
+.road-phase{position:relative;padding-left:56px;margin-bottom:48px}
+.road-dot{position:absolute;left:13px;top:4px;width:16px;height:16px;border-radius:50%;border:2px solid var(--border);background:var(--bg)}
+.road-phase.active .road-dot{border-color:var(--accent);background:var(--accent);box-shadow:0 0 12px rgba(108,92,231,.5)}
+.road-phase.done .road-dot{border-color:var(--green);background:var(--green)}
+.road-q{font-family:var(--mono);font-size:11px;color:var(--accent2);letter-spacing:3px;text-transform:uppercase;margin-bottom:6px}
+.road-title{font-family:var(--sans);font-size:22px;font-weight:600;margin-bottom:8px}
+.road-desc{color:var(--muted);font-size:14px;line-height:1.7}
+.road-desc ul{list-style:none;margin-top:8px}
+.road-desc ul li::before{content:'→ ';color:var(--accent2)}
+
+/* ── WHITEPAPER ── */
+.wp-block{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:48px;max-width:760px}
+.wp-block h3{font-family:var(--sans);font-size:22px;font-weight:600;margin:32px 0 12px;color:var(--accent2)}
+.wp-block h3:first-child{margin-top:0}
+.wp-block p{color:var(--muted);font-size:15px;line-height:1.8;margin-bottom:16px}
+.wp-block p strong{color:var(--ink)}
+.wp-block code{font-family:var(--mono);font-size:13px;color:var(--accent2);background:rgba(108,92,231,.1);
+  padding:2px 8px;border-radius:4px}
+
+/* ── CONTRACT ── */
+.contract-block{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.contract-header{background:var(--surface2);padding:14px 24px;border-bottom:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center}
+.contract-header span{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.contract-lang{color:var(--accent2)!important}
+.contract-code{padding:24px;overflow-x:auto}
+.contract-code pre{font-family:var(--mono);font-size:12px;line-height:1.8;color:var(--muted);white-space:pre}
+.contract-code .kw{color:var(--accent2)}
+.contract-code .fn{color:var(--gold)}
+.contract-code .str{color:var(--green)}
+.contract-code .cm{color:#555}
+.contract-code .num{color:var(--red)}
+
+/* ── COMMUNITY ── */
+.comm-row{display:flex;gap:16px;flex-wrap:wrap}
+.comm-card{flex:1;min-width:200px;background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;padding:28px;text-align:center;transition:border-color .3s}
+.comm-card:hover{border-color:var(--accent)}
+.comm-card .cc-icon{font-size:28px;margin-bottom:12px}
+.comm-card h4{font-family:var(--sans);font-size:16px;font-weight:600;margin-bottom:6px}
+.comm-card p{color:var(--muted);font-size:13px}
+
+/* ── FOOTER ── */
+footer{border-top:1px solid var(--border);padding:48px 0;text-align:center}
+footer p{color:var(--muted);font-size:13px;font-family:var(--mono);letter-spacing:1px}
+footer .f-logo{font-family:var(--mono);font-size:16px;font-weight:700;letter-spacing:4px;margin-bottom:12px;color:var(--ink)}
+footer .f-logo span{color:var(--accent2)}
+footer .f-links{margin-top:16px;display:flex;gap:24px;justify-content:center;font-size:12px}
+footer .f-links a{color:var(--muted)}
+
+/* ── CANVAS ── */
+#heroCanvas{position:absolute;inset:0;z-index:0;pointer-events:none}
+.hero-content{position:relative;z-index:1}
+
+/* ── RESPONSIVE ── */
+@media(max-width:600px){
+  .nav-links{gap:16px;font-size:11px}
+  section{padding:64px 0}
+  .hero{padding:140px 0 80px}
+  .wp-block{padding:28px}
+  .roadmap::before{left:12px}
+  .road-phase{padding-left:40px}
+  .road-dot{left:5px}
+}
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div class="glow-orb"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="wrap">
+    <div class="nav-logo"><span>W</span>WW<span>III</span></div>
+    <div class="nav-links">
+      <a href="#mission">Mission</a>
+      <a href="#token">Token</a>
+      <a href="#roadmap">Roadmap</a>
+      <a href="#paper">Paper</a>
+      <a href="#contract">Contract</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <canvas id="heroCanvas"></canvas>
+  <div class="hero-content">
+    <div class="hero-tag">The World's First Publicly Funded AI</div>
+    <h1><span class="w">W</span>WW<span class="iii">III</span></h1>
+    <div class="hero-sub">
+      One token. One mission.<br>
+      Fund the first <strong>publicly developed and created</strong> large language model.<br>
+      Open weights. Open training. <strong>Built by everyone.</strong>
+    </div>
+    <div class="hero-cta">
+      <a href="#paper" class="btn btn-primary">Read the Paper</a>
+      <a href="#contract" class="btn btn-outline">View Contract</a>
+    </div>
+  </div>
+</header>
+
+<!-- TICKER -->
+<div class="ticker-bar">
+  <div class="ticker-track" id="tickerTrack">
+    <span class="ticker-item"><span class="label">TOKEN</span><span class="val">$WWWIII</span></span>
+    <span class="ticker-item"><span class="label">NETWORK</span><span class="val">Ethereum ERC-20</span></span>
+    <span class="ticker-item"><span class="label">SUPPLY</span><span class="val">1,000,000,000</span></span>
+    <span class="ticker-item"><span class="label">MISSION</span><span class="val">First Publicly Built LLM</span></span>
+    <span class="ticker-item"><span class="label">DEV FUND</span><span class="val">40%</span></span>
+    <span class="ticker-item"><span class="label">COMMUNITY</span><span class="val">30%</span></span>
+    <span class="ticker-item"><span class="label">STATUS</span><span class="val">Building</span></span>
+    <span class="ticker-item"><span class="label">LICENSE</span><span class="val">Apache 2.0</span></span>
+    <!-- duplicate for seamless loop -->
+    <span class="ticker-item"><span class="label">TOKEN</span><span class="val">$WWWIII</span></span>
+    <span class="ticker-item"><span class="label">NETWORK</span><span class="val">Ethereum ERC-20</span></span>
+    <span class="ticker-item"><span class="label">SUPPLY</span><span class="val">1,000,000,000</span></span>
+    <span class="ticker-item"><span class="label">MISSION</span><span class="val">First Publicly Built LLM</span></span>
+    <span class="ticker-item"><span class="label">DEV FUND</span><span class="val">40%</span></span>
+    <span class="ticker-item"><span class="label">COMMUNITY</span><span class="val">30%</span></span>
+    <span class="ticker-item"><span class="label">STATUS</span><span class="val">Building</span></span>
+    <span class="ticker-item"><span class="label">LICENSE</span><span class="val">Apache 2.0</span></span>
+  </div>
+</div>
+
+<!-- MISSION -->
+<section id="mission">
+  <div class="wrap">
+    <div class="section-tag">Why</div>
+    <div class="section-title">The AI arms race has a problem.</div>
+    <div class="section-desc">
+      Every frontier model is built behind closed doors — by corporations, for corporations.
+      The most powerful technology in human history is being developed without you.
+    </div>
+    <div class="mission-grid">
+      <div class="mission-card">
+        <div class="mission-icon">🔒</div>
+        <h3>Closed Development</h3>
+        <p>GPT, Gemini, Claude — built by billion-dollar labs. Training data hidden. Architecture proprietary. You use the product but never own it.</p>
+      </div>
+      <div class="mission-card">
+        <div class="mission-icon">💰</div>
+        <h3>The Compute Problem</h3>
+        <p>Training a frontier LLM costs $100M+ in compute alone. No individual can afford it. No open-source project can match it. Until now.</p>
+      </div>
+      <div class="mission-card">
+        <div class="mission-icon">🌍</div>
+        <h3>The WWWIII Solution</h3>
+        <p>Pool resources through a token. Fund compute, researchers, and infrastructure. Every holder is a stakeholder in the model. Open weights. Open code. Open everything.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TOKENOMICS -->
+<section id="token" style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+  <div class="wrap">
+    <div class="section-tag">Tokenomics</div>
+    <div class="section-title">$WWWIII</div>
+    <div class="section-desc">1 billion tokens. Every one tied to building the first publicly created LLM.</div>
+    <div class="token-grid">
+      <div class="token-chart">
+        <div class="token-ring">
+          <svg viewBox="0 0 200 200">
+            <circle cx="100" cy="100" r="80" fill="none" stroke="#1a1a2e" stroke-width="20"/>
+            <!-- 40% Dev Fund -->
+            <circle cx="100" cy="100" r="80" fill="none" stroke="#6c5ce7" stroke-width="20"
+              stroke-dasharray="201.06 301.59" stroke-dashoffset="0"
+              transform="rotate(-90 100 100)" stroke-linecap="round"/>
+            <!-- 30% Community -->
+            <circle cx="100" cy="100" r="80" fill="none" stroke="#a29bfe" stroke-width="20"
+              stroke-dasharray="150.80 351.86" stroke-dashoffset="-201.06"
+              transform="rotate(-90 100 100)" stroke-linecap="round"/>
+            <!-- 15% Team -->
+            <circle cx="100" cy="100" r="80" fill="none" stroke="#f0c040" stroke-width="20"
+              stroke-dasharray="75.40 427.26" stroke-dashoffset="-351.86"
+              transform="rotate(-90 100 100)" stroke-linecap="round"/>
+            <!-- 10% Liquidity -->
+            <circle cx="100" cy="100" r="80" fill="none" stroke="#00e676" stroke-width="20"
+              stroke-dasharray="50.27 452.39" stroke-dashoffset="-427.26"
+              transform="rotate(-90 100 100)" stroke-linecap="round"/>
+            <!-- 5% Reserve -->
+            <circle cx="100" cy="100" r="80" fill="none" stroke="#ff3838" stroke-width="20"
+              stroke-dasharray="25.13 477.52" stroke-dashoffset="-477.52"
+              transform="rotate(-90 100 100)" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="token-center">
+          <div class="token-total">Total Supply</div>
+          <div class="token-supply">1,000,000,000</div>
+          <div class="token-symbol">$WWWIII</div>
+        </div>
+      </div>
+      <div class="token-legend">
+        <div>
+          <div class="token-leg-item"><div class="token-leg-dot" style="background:#6c5ce7"></div><span class="token-leg-pct">40%</span><span class="token-leg-label">Development Fund</span></div>
+          <div class="token-leg-desc">Compute, training runs, infrastructure, researcher grants</div>
+        </div>
+        <div>
+          <div class="token-leg-item"><div class="token-leg-dot" style="background:#a29bfe"></div><span class="token-leg-pct">30%</span><span class="token-leg-label">Community</span></div>
+          <div class="token-leg-desc">Airdrops, contributor rewards, governance participation</div>
+        </div>
+        <div>
+          <div class="token-leg-item"><div class="token-leg-dot" style="background:#f0c040"></div><span class="token-leg-pct">15%</span><span class="token-leg-label">Team &amp; Advisors</span></div>
+          <div class="token-leg-desc">2-year vesting, 6-month cliff — aligned with long-term mission</div>
+        </div>
+        <div>
+          <div class="token-leg-item"><div class="token-leg-dot" style="background:#00e676"></div><span class="token-leg-pct">10%</span><span class="token-leg-label">Liquidity</span></div>
+          <div class="token-leg-desc">DEX pools, market making, exchange listings</div>
+        </div>
+        <div>
+          <div class="token-leg-item"><div class="token-leg-dot" style="background:#ff3838"></div><span class="token-leg-pct">5%</span><span class="token-leg-label">Reserve</span></div>
+          <div class="token-leg-desc">Emergency fund, partnerships, unforeseen opportunities</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ROADMAP -->
+<section id="roadmap">
+  <div class="wrap">
+    <div class="section-tag">Roadmap</div>
+    <div class="section-title">From token to transformer.</div>
+    <div class="section-desc">A phased plan to build the world's first publicly funded large language model.</div>
+    <div class="roadmap">
+      <div class="road-phase active">
+        <div class="road-dot"></div>
+        <div class="road-q">Phase 1 — Foundation</div>
+        <div class="road-title">Token Launch &amp; Community</div>
+        <div class="road-desc">
+          <ul>
+            <li>Deploy $WWWIII ERC-20 contract on Ethereum mainnet</li>
+            <li>Initial DEX offering on Uniswap</li>
+            <li>Establish DAO governance framework</li>
+            <li>Publish full technical whitepaper</li>
+            <li>Open-source all project infrastructure</li>
+          </ul>
+        </div>
+      </div>
+      <div class="road-phase">
+        <div class="road-dot"></div>
+        <div class="road-q">Phase 2 — Architecture</div>
+        <div class="road-title">Model Design &amp; Data Pipeline</div>
+        <div class="road-desc">
+          <ul>
+            <li>Hire core research team (publicly elected advisors)</li>
+            <li>Design transformer architecture — all decisions voted on by holders</li>
+            <li>Build open data pipeline (CommonCrawl, Wikipedia, ArXiv, etc.)</li>
+            <li>Secure GPU compute partnerships (decentralized + cloud hybrid)</li>
+            <li>Launch contributor reward program</li>
+          </ul>
+        </div>
+      </div>
+      <div class="road-phase">
+        <div class="road-dot"></div>
+        <div class="road-q">Phase 3 — Training</div>
+        <div class="road-title">First Training Run</div>
+        <div class="road-desc">
+          <ul>
+            <li>Begin pre-training on assembled compute cluster</li>
+            <li>Live dashboard: loss curves, token throughput, cost — all public</li>
+            <li>Community-driven RLHF alignment</li>
+            <li>Intermediate checkpoints released as open weights</li>
+            <li>Bug bounties for safety and alignment issues</li>
+          </ul>
+        </div>
+      </div>
+      <div class="road-phase">
+        <div class="road-dot"></div>
+        <div class="road-q">Phase 4 — Release</div>
+        <div class="road-title">The People's Model</div>
+        <div class="road-desc">
+          <ul>
+            <li>Full model release — Apache 2.0 license</li>
+            <li>Open API for token holders (free tier for all)</li>
+            <li>Inference cost subsidized by treasury</li>
+            <li>Begin fine-tuning ecosystem grants</li>
+            <li>Plan next-generation model based on learnings</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHITEPAPER -->
+<section id="paper" style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+  <div class="wrap">
+    <div class="section-tag">Paper</div>
+    <div class="section-title">Why this matters.</div>
+    <div class="section-desc">The case for publicly funded artificial intelligence.</div>
+    <div class="wp-block">
+      <h3>The Concentration Problem</h3>
+      <p>As of 2026, fewer than ten organizations on Earth have trained a frontier large language model. The cost of compute, the scarcity of talent, and the secrecy of training data have created an oligopoly over the most transformative technology since the printing press.</p>
+      <p>OpenAI raised $6.6 billion. Anthropic raised $7.3 billion. Google, Meta, and xAI have spent tens of billions more. The result: <strong>a handful of companies own the future of intelligence</strong> — and none of them answer to you.</p>
+
+      <h3>The Open-Source Gap</h3>
+      <p>Open-source models like LLaMA, Mistral, and DeepSeek have proven that open weights can rival closed systems. But they still depend on corporate benefactors. Meta open-sources LLaMA — but Meta decides the architecture, the training data, and the release schedule. Open weights are not the same as open development.</p>
+      <p><strong>WWWIII proposes something different:</strong> a model that is publicly funded, publicly designed, and publicly governed from day one. Not a corporate gift. A collective creation.</p>
+
+      <h3>Token Utility</h3>
+      <p>The <code>$WWWIII</code> token is not a meme. It is a coordination mechanism. Holders govern decisions about architecture, training data, compute allocation, and release strategy through on-chain voting. The token directly funds:</p>
+      <p><strong>GPU compute</strong> — the single largest cost in AI development. Tokens from the Development Fund are converted to pay for cloud compute and decentralized GPU networks.</p>
+      <p><strong>Researchers</strong> — grants for ML engineers, alignment researchers, and data scientists who contribute to the project.</p>
+      <p><strong>Infrastructure</strong> — training pipelines, data processing, evaluation benchmarks, and the open API.</p>
+
+      <h3>Why Crypto?</h3>
+      <p>Because no existing institution can do this. Governments move too slowly. Corporations have misaligned incentives. Crowdfunding platforms take a cut and offer no governance. A token on Ethereum provides: <strong>global permissionless funding, transparent treasury, programmable governance, and aligned incentives</strong> — token holders benefit when the model succeeds.</p>
+
+      <h3>What We're Building</h3>
+      <p>A transformer-based language model, targeting 70B+ parameters on initial release, trained on a curated open dataset. All training code, data processing pipelines, and model weights released under <code>Apache 2.0</code>. Every training run logged publicly. Every architectural decision voted on. Every dollar accounted for on-chain.</p>
+      <p>This is not a startup. It's a movement. The world's first <strong>publicly developed and created</strong> artificial intelligence.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SMART CONTRACT -->
+<section id="contract">
+  <div class="wrap">
+    <div class="section-tag">Contract</div>
+    <div class="section-title">The code.</div>
+    <div class="section-desc">ERC-20 token contract — auditable, verifiable, immutable.</div>
+    <div class="contract-block">
+      <div class="contract-header">
+        <span>WWWIII.sol</span>
+        <span class="contract-lang">Solidity ^0.8.20</span>
+      </div>
+      <div class="contract-code"><pre><span class="cm">// SPDX-License-Identifier: MIT</span>
+<span class="kw">pragma solidity</span> ^0.8.20;
+
+<span class="kw">import</span> <span class="str">"@openzeppelin/contracts/token/ERC20/ERC20.sol"</span>;
+<span class="kw">import</span> <span class="str">"@openzeppelin/contracts/access/Ownable.sol"</span>;
+
+<span class="cm">/**
+ * @title WWWIII — The People's AI Token
+ * @notice Funds the first publicly developed large language model
+ * @dev 1B fixed supply, no mint function, deflationary optional
+ */</span>
+<span class="kw">contract</span> <span class="fn">WWWIII</span> <span class="kw">is</span> ERC20, Ownable {
+
+    <span class="kw">uint256 public constant</span> TOTAL_SUPPLY = <span class="num">1_000_000_000</span> * <span class="num">10</span>**<span class="num">18</span>;
+
+    <span class="cm">// Allocation addresses</span>
+    <span class="kw">address public</span> devFund;       <span class="cm">// 40% — compute, research, infra</span>
+    <span class="kw">address public</span> community;     <span class="cm">// 30% — airdrops, rewards, governance</span>
+    <span class="kw">address public</span> team;           <span class="cm">// 15% — 2yr vest, 6mo cliff</span>
+    <span class="kw">address public</span> liquidity;      <span class="cm">// 10% — DEX pools</span>
+    <span class="kw">address public</span> reserve;        <span class="cm">//  5% — emergency + partnerships</span>
+
+    <span class="kw">constructor</span>(
+        <span class="kw">address</span> _devFund,
+        <span class="kw">address</span> _community,
+        <span class="kw">address</span> _team,
+        <span class="kw">address</span> _liquidity,
+        <span class="kw">address</span> _reserve
+    ) <span class="fn">ERC20</span>(<span class="str">"WWWIII"</span>, <span class="str">"WWWIII"</span>) <span class="fn">Ownable</span>(msg.sender) {
+        devFund   = _devFund;
+        community = _community;
+        team      = _team;
+        liquidity = _liquidity;
+        reserve   = _reserve;
+
+        <span class="fn">_mint</span>(devFund,   TOTAL_SUPPLY * <span class="num">40</span> / <span class="num">100</span>);
+        <span class="fn">_mint</span>(community, TOTAL_SUPPLY * <span class="num">30</span> / <span class="num">100</span>);
+        <span class="fn">_mint</span>(team,      TOTAL_SUPPLY * <span class="num">15</span> / <span class="num">100</span>);
+        <span class="fn">_mint</span>(liquidity, TOTAL_SUPPLY * <span class="num">10</span> / <span class="num">100</span>);
+        <span class="fn">_mint</span>(reserve,   TOTAL_SUPPLY *  <span class="num">5</span> / <span class="num">100</span>);
+    }
+
+    <span class="cm">/// @notice Optional burn — deflationary mechanism</span>
+    <span class="kw">function</span> <span class="fn">burn</span>(<span class="kw">uint256</span> amount) <span class="kw">external</span> {
+        <span class="fn">_burn</span>(msg.sender, amount);
+    }
+}</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMMUNITY -->
+<section id="community" style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+  <div class="wrap">
+    <div class="section-tag">Community</div>
+    <div class="section-title">Join the build.</div>
+    <div class="section-desc">This model will be built in public, by the public.</div>
+    <div class="comm-row">
+      <div class="comm-card">
+        <div class="cc-icon">⛓️</div>
+        <h4>On-Chain Governance</h4>
+        <p>Every major decision — architecture, dataset, compute provider — voted on by token holders.</p>
+      </div>
+      <div class="comm-card">
+        <div class="cc-icon">🔬</div>
+        <h4>Open Research</h4>
+        <p>All training logs, loss curves, and checkpoints published in real time. Total transparency.</p>
+      </div>
+      <div class="comm-card">
+        <div class="cc-icon">🛠️</div>
+        <h4>Contributor Rewards</h4>
+        <p>Write code, label data, review architecture — earn $WWWIII for every contribution.</p>
+      </div>
+      <div class="comm-card">
+        <div class="cc-icon">🌐</div>
+        <h4>Global &amp; Permissionless</h4>
+        <p>No KYC to participate. No borders. If you can hold a token, you can shape the future of AI.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="f-logo"><span>W</span>WW<span>III</span></div>
+    <p>The first publicly developed and created artificial intelligence.</p>
+    <div class="f-links">
+      <a href="#mission">Mission</a>
+      <a href="#token">Token</a>
+      <a href="#roadmap">Roadmap</a>
+      <a href="#paper">Paper</a>
+      <a href="#contract">Contract</a>
+    </div>
+  </div>
+</footer>
+
+<!-- HERO PARTICLE CANVAS -->
+<script>
+(function(){
+  const c=document.getElementById('heroCanvas');
+  if(!c) return;
+  const ctx=c.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  let W,H;
+
+  function resize(){
+    const rect=c.parentElement.getBoundingClientRect();
+    W=rect.width;H=rect.height;
+    c.width=W*dpr;c.height=H*dpr;
+    c.style.width=W+'px';c.style.height=H+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  resize();
+  window.addEventListener('resize',resize);
+
+  const N=80;
+  const particles=[];
+  for(let i=0;i<N;i++){
+    particles.push({
+      x:Math.random()*W,y:Math.random()*H,
+      vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,
+      r:Math.random()*1.5+.5,
+      a:Math.random()*.4+.1
+    });
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // connections
+    for(let i=0;i<N;i++){
+      for(let j=i+1;j<N;j++){
+        const dx=particles[i].x-particles[j].x;
+        const dy=particles[i].y-particles[j].y;
+        const dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<150){
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x,particles[i].y);
+          ctx.lineTo(particles[j].x,particles[j].y);
+          ctx.strokeStyle=`rgba(108,92,231,${.08*(1-dist/150)})`;
+          ctx.lineWidth=.5;
+          ctx.stroke();
+        }
+      }
+    }
+    // particles
+    particles.forEach(p=>{
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(162,155,254,${p.a})`;
+      ctx.fill();
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0||p.x>W) p.vx*=-1;
+      if(p.y<0||p.y>H) p.vy*=-1;
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+</script>
+
+</body>
+</html>

@@ -337,50 +337,8 @@ footer .f-links a{color:var(--muted)}
       Fund the first <strong>publicly developed and created</strong> large language model.<br>
       Open weights. Open training. <strong>Built by everyone.</strong>
     </div>
-    <div class="hero-cta">
-      <a href="#fund" class="btn btn-primary">Fund the Model</a>
-      <a href="/whitepaper.html" class="btn btn-outline">Read Whitepaper</a>
-    </div>
-  </div>
-</header>
-
-<!-- TICKER -->
-<div class="ticker-bar">
-  <div class="ticker-track" id="tickerTrack">
-    <span class="ticker-item"><span class="label">TOKEN</span><span class="val">$WWWIII</span></span>
-    <span class="ticker-item"><span class="label">NETWORK</span><span class="val">Ethereum ERC-20</span></span>
-    <span class="ticker-item"><span class="label">SUPPLY</span><span class="val">1,000,000,000</span></span>
-    <span class="ticker-item"><span class="label">MISSION</span><span class="val">First Publicly Built LLM</span></span>
-    <span class="ticker-item"><span class="label">DEV FUND</span><span class="val">40%</span></span>
-    <span class="ticker-item"><span class="label">COMMUNITY</span><span class="val">30%</span></span>
-    <span class="ticker-item"><span class="label">STATUS</span><span class="val">Building</span></span>
-    <span class="ticker-item"><span class="label">LICENSE</span><span class="val">Apache 2.0</span></span>
-    <!-- duplicate for seamless loop -->
-    <span class="ticker-item"><span class="label">TOKEN</span><span class="val">$WWWIII</span></span>
-    <span class="ticker-item"><span class="label">NETWORK</span><span class="val">Ethereum ERC-20</span></span>
-    <span class="ticker-item"><span class="label">SUPPLY</span><span class="val">1,000,000,000</span></span>
-    <span class="ticker-item"><span class="label">MISSION</span><span class="val">First Publicly Built LLM</span></span>
-    <span class="ticker-item"><span class="label">DEV FUND</span><span class="val">40%</span></span>
-    <span class="ticker-item"><span class="label">COMMUNITY</span><span class="val">30%</span></span>
-    <span class="ticker-item"><span class="label">STATUS</span><span class="val">Building</span></span>
-    <span class="ticker-item"><span class="label">LICENSE</span><span class="val">Apache 2.0</span></span>
-  </div>
-</div>
-
-<!-- FUND (PRIMARY SECTION) -->
-<section id="fund">
-  <div class="wrap">
-    <div class="section-tag">Fund the Model</div>
-    <div class="section-title">Back the build.</div>
-    <div class="section-desc">Every contribution goes directly to compute, researchers, and infrastructure.</div>
-
-    <div style="text-align:center;margin-bottom:48px">
-      <div style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px">Funding Goal</div>
-      <div style="font-family:var(--sans);font-size:clamp(48px,8vw,80px);font-weight:700;letter-spacing:-2px;background:linear-gradient(135deg,var(--accent2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent">$1,000,000,000</div>
-      <div style="font-family:var(--mono);font-size:13px;color:var(--muted);margin-top:4px;letter-spacing:1px">To train the first publicly built LLM</div>
-    </div>
-
-    <div class="fund-circle-wrap">
+    <!-- FUNDING CIRCLE — HERO FOCAL POINT -->
+    <div class="fund-circle-wrap" style="margin-top:48px">
       <div class="fund-circle">
         <svg viewBox="0 0 200 200">
           <defs>
@@ -412,6 +370,33 @@ footer .f-links a{color:var(--muted)}
         <div class="fund-ms" id="ms-1b"><div class="fund-ms-val">$1B</div><div class="fund-ms-label">Goal</div></div>
       </div>
     </div>
+  </div>
+</header>
+
+<!-- TICKER -->
+<div class="ticker-bar">
+  <div class="ticker-track" id="tickerTrack">
+    <span class="ticker-item"><span class="label">TOKEN</span><span class="val">$WWWIII</span></span>
+    <span class="ticker-item"><span class="label">NETWORK</span><span class="val">Ethereum ERC-20</span></span>
+    <span class="ticker-item"><span class="label">SUPPLY</span><span class="val">1,000,000,000</span></span>
+    <span class="ticker-item"><span class="label">MISSION</span><span class="val">First Publicly Built LLM</span></span>
+    <span class="ticker-item"><span class="label">STATUS</span><span class="val">Building</span></span>
+    <span class="ticker-item"><span class="label">LICENSE</span><span class="val">Apache 2.0</span></span>
+    <span class="ticker-item"><span class="label">TOKEN</span><span class="val">$WWWIII</span></span>
+    <span class="ticker-item"><span class="label">NETWORK</span><span class="val">Ethereum ERC-20</span></span>
+    <span class="ticker-item"><span class="label">SUPPLY</span><span class="val">1,000,000,000</span></span>
+    <span class="ticker-item"><span class="label">MISSION</span><span class="val">First Publicly Built LLM</span></span>
+    <span class="ticker-item"><span class="label">STATUS</span><span class="val">Building</span></span>
+    <span class="ticker-item"><span class="label">LICENSE</span><span class="val">Apache 2.0</span></span>
+  </div>
+</div>
+
+<!-- FUND -->
+<section id="fund">
+  <div class="wrap">
+    <div class="section-tag">Fund the Model</div>
+    <div class="section-title">Back the build.</div>
+    <div class="section-desc">Every contribution goes directly to compute, researchers, and infrastructure.</div>
 
     <!-- PAYMENT METHOD TABS -->
     <div class="pay-tabs">
@@ -507,8 +492,8 @@ footer .f-links a{color:var(--muted)}
     </div>
 
     <div class="donor-feed">
-      <div class="donor-feed-title">Recent Donors</div>
-      <div id="donorList"><div class="donor-empty">Be the first to donate</div></div>
+      <div class="donor-feed-title">Donor List</div>
+      <div id="donorList"></div>
     </div>
 
     <div class="climate-badge">

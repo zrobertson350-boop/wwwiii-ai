@@ -40,9 +40,10 @@ app.post('/api/create-checkout-session', async (req, res) => {
         },
         quantity: 1,
       }],
+      billing_address_collection: 'auto',
       metadata: {
         wallet_address: walletAddress || '',
-        tokens_owed: String(Math.floor((cents / 100) * 500)),
+        pro_rata_pct: String((cents / 100 / 1000000000 * 100).toFixed(10)),
       },
       success_url: `${baseUrl}/success.html?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/#fund`,
@@ -94,6 +95,59 @@ app.get('/api/funding-total', async (req, res) => {
     res.json({ totalUSD: BASE_FUNDED_USD, stripeUSD: 0, baseUSD: BASE_FUNDED_USD });
   }
 });
+
+// Donor list — recent successful donations
+app.get('/api/donors', async (req, res) => {
+  try {
+    const sessions = await stripe.checkout.sessions.list({
+      limit: 20,
+      status: 'complete',
+      expand: ['data.payment_intent'],
+    });
+
+    const donors = [];
+    for (const s of sessions.data) {
+      // Skip refunded payments
+      const pi = s.payment_intent;
+      if (pi && pi.status === 'succeeded' && pi.amount_received > pi.amount_refunded) {
+        const netCents = pi.amount_received - (pi.amount_refunded || 0);
+        const name = s.customer_details?.name || 'Anonymous';
+        // Show first name + last initial for privacy
+        const parts = name.trim().split(' ');
+        const displayName = parts.length > 1
+          ? parts[0] + ' ' + parts[parts.length - 1][0] + '.'
+          : parts[0];
+
+        const created = new Date(s.created * 1000);
+        const ago = timeAgo(created);
+
+        donors.push({
+          name: displayName,
+          amount: netCents / 100,
+          timeAgo: ago,
+          date: created.toISOString(),
+        });
+      }
+    }
+
+    res.json(donors);
+  } catch (err) {
+    console.error('Donors error:', err.message);
+    res.json([]);
+  }
+});
+
+function timeAgo(date) {
+  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (seconds < 60) return 'just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return minutes + 'm ago';
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return hours + 'h ago';
+  const days = Math.floor(hours / 24);
+  if (days < 30) return days + 'd ago';
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
 
 // Check payment status
 app.get('/api/checkout-session/:id', async (req, res) => {

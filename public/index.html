@@ -230,6 +230,13 @@ section{padding:100px 0}
   transition:stroke-dashoffset 2s cubic-bezier(.4,0,.2,1)}
 .fund-circle-glow{fill:none;stroke:url(#fundGradient);stroke-width:18;stroke-linecap:round;
   filter:blur(12px);opacity:.4;transition:stroke-dashoffset 2s cubic-bezier(.4,0,.2,1)}
+.fund-circle-pulse{fill:none;stroke:var(--accent);stroke-width:2;opacity:0;
+  animation:circlePulse 3s ease-out infinite}
+@keyframes circlePulse{0%{opacity:.6;stroke-width:2;r:85}50%{opacity:0;stroke-width:1;r:95}100%{opacity:0;stroke-width:0;r:100}}
+.fund-circle-spin{fill:none;stroke:url(#fundGradient);stroke-width:2;stroke-dasharray:20 514;
+  stroke-linecap:round;opacity:.3;animation:circleSpin 8s linear infinite}
+@keyframes circleSpin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+.fund-circle svg{overflow:visible}
 .fund-circle-center{position:absolute;inset:0;display:flex;flex-direction:column;
   align-items:center;justify-content:center;text-align:center}
 .fund-circle-raised{font-family:var(--sans);font-size:clamp(28px,5vw,42px);font-weight:700;
@@ -245,6 +252,26 @@ section{padding:100px 0}
 .fund-ms-val{font-family:var(--sans);font-size:16px;font-weight:700;color:var(--ink)}
 .fund-ms-label{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
 .fund-ms.hit .fund-ms-val{color:var(--green)}
+
+/* ── DONOR LIST ── */
+.donor-feed{margin-top:48px;max-width:520px;margin-left:auto;margin-right:auto}
+.donor-feed-title{font-family:var(--mono);font-size:11px;color:var(--accent2);letter-spacing:3px;
+  text-transform:uppercase;margin-bottom:16px;text-align:center}
+.donor-item{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;
+  border-bottom:1px solid var(--border);transition:background .2s}
+.donor-item:hover{background:rgba(108,92,231,.03)}
+.donor-item:last-child{border-bottom:none}
+.donor-name{font-family:var(--sans);font-size:14px;font-weight:500;color:var(--ink)}
+.donor-amt{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--accent2)}
+.donor-time{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.donor-empty{text-align:center;color:var(--muted);font-size:14px;padding:24px}
+
+/* ── CLIMATE BADGE ── */
+.climate-badge{display:flex;align-items:center;gap:16px;background:rgba(0,230,118,.06);
+  border:1px solid rgba(0,230,118,.2);border-radius:10px;padding:20px 24px;margin-top:32px;max-width:520px;margin-left:auto;margin-right:auto}
+.climate-icon{font-size:28px;flex-shrink:0}
+.climate-text{font-size:13px;color:var(--muted);line-height:1.6}
+.climate-text strong{color:var(--green)}
 
 /* ── COMMUNITY ── */
 .comm-row{display:flex;gap:16px;flex-wrap:wrap}
@@ -296,7 +323,6 @@ footer .f-links a{color:var(--muted)}
       <a href="/whitepaper.html">Whitepaper</a>
       <a href="#contract">Contract</a>
     </div>
-    <button class="wallet-btn" id="walletBtn" onclick="connectWallet()">Connect Wallet</button>
   </div>
 </nav>
 
@@ -369,12 +395,14 @@ footer .f-links a{color:var(--muted)}
             stroke-dasharray="534.07" stroke-dashoffset="534.07" id="fundCircleGlow"/>
           <circle class="fund-circle-fill" cx="100" cy="100" r="85"
             stroke-dasharray="534.07" stroke-dashoffset="534.07" id="fundCircleFill"/>
+          <circle class="fund-circle-pulse" cx="100" cy="100" r="85"/>
+          <circle class="fund-circle-spin" cx="100" cy="100" r="92" style="transform-origin:100px 100px"/>
         </svg>
         <div class="fund-circle-center">
           <div class="fund-circle-label">Raised</div>
           <div class="fund-circle-raised" id="fundRaisedAmount">$0</div>
-          <div class="fund-circle-pct" id="fundRaisedPct">0.00%</div>
-          <div class="fund-circle-goal">of $1,000,000,000</div>
+          <div class="fund-circle-goal" id="fundGoalText">out of $1,000,000,000</div>
+          <div class="fund-circle-pct" id="fundRaisedPct">0%</div>
         </div>
       </div>
       <div class="fund-milestones">
@@ -417,6 +445,16 @@ footer .f-links a{color:var(--muted)}
         <span class="method-badge">Google Pay</span>
         <span class="method-badge">AMEX</span>
       </div>
+    </div>
+
+    <div class="donor-feed">
+      <div class="donor-feed-title">Recent Donors</div>
+      <div id="donorList"><div class="donor-empty">Be the first to donate</div></div>
+    </div>
+
+    <div class="climate-badge">
+      <div class="climate-icon">🌍</div>
+      <div class="climate-text"><strong>1.5% of every donation</strong> goes directly toward carbon reduction and climate initiatives. Building the future of AI responsibly means building a sustainable future for the planet.</div>
     </div>
 
     <!-- $WWWIII TOKEN — COMING SOON -->
@@ -803,135 +841,34 @@ footer .f-links a{color:var(--muted)}
 </script>
 
 <script>
-const TOKEN_ADDRESS = '0x5201ee6ffb64aeA97Cf887bd6852ca572A15f33a';
-const PRESALE_ADDRESS = '0xCD26a62fc178129F4b24759c329e0c1867d4e613';
-const SEPOLIA_CHAIN_ID = '0xaa36a7'; // 11155111
-
-// Presale contract ABI (only the functions we need)
-const PRESALE_ABI = [
-  'function buySupporter() external payable',
-  'function buyBuilder() external payable',
-  'function buyArchitect() external payable',
-  'function saleActive() external view returns (bool)',
-  'function totalRaised() external view returns (uint256)',
-  'function totalTokensSold() external view returns (uint256)',
-  'function tokensRemaining() external view returns (uint256)',
-  'function contributed(address) external view returns (uint256)',
-  'function tokensBought(address) external view returns (uint256)',
-];
-
 let userAccount = null;
-
-async function connectWallet() {
-  const btn = document.getElementById('walletBtn');
-  if (!window.ethereum) {
-    alert('MetaMask not detected. Please install MetaMask to connect your wallet.');
-    window.open('https://metamask.io/download/', '_blank');
-    return;
-  }
-  try {
-    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-    userAccount = accounts[0];
-    btn.textContent = userAccount.slice(0, 6) + '...' + userAccount.slice(-4);
-    btn.classList.add('connected');
-
-    // Switch to Sepolia if needed
-    try {
-      await window.ethereum.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: SEPOLIA_CHAIN_ID }],
-      });
-    } catch (switchErr) {
-      if (switchErr.code === 4902) {
-        await window.ethereum.request({
-          method: 'wallet_addEthereumChain',
-          params: [{
-            chainId: SEPOLIA_CHAIN_ID,
-            chainName: 'Sepolia Testnet',
-            rpcUrls: ['https://ethereum-sepolia-rpc.publicnode.com'],
-            nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
-            blockExplorerUrls: ['https://sepolia.etherscan.io'],
-          }],
-        });
-      }
-    }
-  } catch (err) {
-    console.error('Wallet connection failed:', err);
-  }
-}
-
-// Auto-reconnect if already authorized
-if (window.ethereum) {
-  window.ethereum.request({ method: 'eth_accounts' }).then(accounts => {
-    if (accounts.length > 0) {
-      userAccount = accounts[0];
-      const btn = document.getElementById('walletBtn');
-      btn.textContent = userAccount.slice(0, 6) + '...' + userAccount.slice(-4);
-      btn.classList.add('connected');
-    }
-  });
-  window.ethereum.on('accountsChanged', accounts => {
-    if (accounts.length === 0) {
-      userAccount = null;
-      const btn = document.getElementById('walletBtn');
-      btn.textContent = 'Connect Wallet';
-      btn.classList.remove('connected');
-    } else {
-      userAccount = accounts[0];
-      const btn = document.getElementById('walletBtn');
-      btn.textContent = userAccount.slice(0, 6) + '...' + userAccount.slice(-4);
-      btn.classList.add('connected');
-    }
-  });
-}
-
-async function fundTier(tier) {
-  const prices = { supporter: '0.05', builder: '0.25', architect: '1.0' };
-  const tokens = { supporter: '50,000', builder: '300,000', architect: '1,500,000' };
-  const methods = {
-    supporter: 'buySupporter',
-    builder:   'buyBuilder',
-    architect: 'buyArchitect',
-  };
-  // Function selectors (first 4 bytes of keccak256 of function signature)
-  const selectors = {
-    supporter: '0x85990c61', // buySupporter()
-    builder:   '0xbe5695be', // buyBuilder()
-    architect: '0x737d3236', // buyArchitect()
-  };
-
-  if (!userAccount) {
-    await connectWallet();
-    if (!userAccount) return;
-  }
-
-  const ethAmount = prices[tier];
-  const weiHex = '0x' + BigInt(Math.round(parseFloat(ethAmount) * 1e18)).toString(16);
-
-  try {
-    const txHash = await window.ethereum.request({
-      method: 'eth_sendTransaction',
-      params: [{
-        from: userAccount,
-        to: PRESALE_ADDRESS,
-        value: weiHex,
-        data: selectors[tier],
-      }],
-    });
-    alert(`Transaction sent! ${ethAmount} ETH for ${tokens[tier]} $WWWIII tokens.\n\nTx: ${txHash}\n\nView on Etherscan:\nhttps://sepolia.etherscan.io/tx/${txHash}`);
-  } catch (err) {
-    if (err.code === 4001) {
-      // User rejected
-    } else {
-      console.error('Transaction failed:', err);
-      alert('Transaction failed. Please check your wallet and try again.');
-    }
-  }
-}
 
 // ── Funding Circle ──
 const FUND_GOAL = 1_000_000_000; // $1B
 const CIRCLE_CIRCUMFERENCE = 534.07; // 2 * PI * 85
+
+let currentDisplayed = 0;
+
+function animateCount(target) {
+  const amtEl = document.getElementById('fundRaisedAmount');
+  if (!amtEl) return;
+  const start = currentDisplayed;
+  const diff = target - start;
+  if (diff === 0) return;
+  const duration = 1500;
+  const startTime = performance.now();
+
+  function step(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+    const current = Math.round(start + diff * eased);
+    amtEl.textContent = '$' + current.toLocaleString();
+    if (progress < 1) requestAnimationFrame(step);
+    else currentDisplayed = target;
+  }
+  requestAnimationFrame(step);
+}
 
 function updateFundingCircle(raised) {
   const pct = Math.min(raised / FUND_GOAL, 1);
@@ -942,10 +879,9 @@ function updateFundingCircle(raised) {
   if (fill) fill.setAttribute('stroke-dashoffset', offset);
   if (glow) glow.setAttribute('stroke-dashoffset', offset);
 
-  const amtEl = document.getElementById('fundRaisedAmount');
+  animateCount(raised);
   const pctEl = document.getElementById('fundRaisedPct');
-  if (amtEl) amtEl.textContent = '$' + raised.toLocaleString();
-  if (pctEl) pctEl.textContent = (pct * 100).toFixed(pct < 0.01 ? 4 : 2) + '%';
+  if (pctEl) pctEl.textContent = (pct * 100).toFixed(pct < 0.0001 ? 6 : 2) + '%';
 
   // Milestones
   if (raised >= 1_000_000) document.getElementById('ms-1m')?.classList.add('hit');
@@ -954,21 +890,39 @@ function updateFundingCircle(raised) {
   if (raised >= 1_000_000_000) document.getElementById('ms-1b')?.classList.add('hit');
 }
 
-// Fetch real raised amount from server (ETH presale + Stripe)
-async function fetchFundingTotal() {
+// Fetch funding total + donor list
+async function fetchFundingData() {
   try {
-    const res = await fetch('/api/funding-total');
-    const data = await res.json();
-    updateFundingCircle(data.totalUSD || 0);
+    const [fundRes, donorRes] = await Promise.all([
+      fetch('/api/funding-total'),
+      fetch('/api/donors'),
+    ]);
+    const fundData = await fundRes.json();
+    updateFundingCircle(fundData.totalUSD || 0);
+
+    const donors = await donorRes.json();
+    renderDonorList(donors);
   } catch(e) {
     updateFundingCircle(0);
   }
 }
 
+function renderDonorList(donors) {
+  const el = document.getElementById('donorList');
+  if (!el || !donors.length) return;
+  el.innerHTML = donors.map(d =>
+    '<div class="donor-item">' +
+      '<div class="donor-name">' + d.name + '</div>' +
+      '<div class="donor-amt">$' + d.amount.toLocaleString() + '</div>' +
+      '<div class="donor-time">' + d.timeAgo + '</div>' +
+    '</div>'
+  ).join('');
+}
+
 // Initialize on load and refresh every 30s
 document.addEventListener('DOMContentLoaded', () => {
-  fetchFundingTotal();
-  setInterval(fetchFundingTotal, 30000);
+  fetchFundingData();
+  setInterval(fetchFundingData, 30000);
 });
 
 // ── Card payment ──

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WWWIII — Payment Successful</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#050508;--surface:#0c0c12;--border:#1a1a2e;--ink:#e8e8f0;--muted:#8888a0;
+  --accent:#6c5ce7;--accent2:#a29bfe;--green:#00e676;--gold:#f0c040;
+  --mono:'JetBrains Mono',monospace;--sans:'Space Grotesk',sans-serif;--body:'Inter',sans-serif}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);line-height:1.7;
+  display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:48px;
+  max-width:520px;width:100%;text-align:center}
+.check{width:64px;height:64px;border-radius:50%;background:rgba(0,230,118,.15);
+  display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:32px}
+h1{font-family:var(--sans);font-size:28px;font-weight:700;margin-bottom:8px}
+.sub{color:var(--muted);font-size:16px;margin-bottom:32px}
+.detail{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);
+  font-size:14px}
+.detail .label{color:var(--muted)}
+.detail .val{font-family:var(--mono);color:var(--accent2);font-weight:500}
+.note{margin-top:24px;color:var(--muted);font-size:13px;line-height:1.6}
+.btn{display:inline-block;margin-top:24px;padding:12px 32px;border-radius:8px;font-family:var(--sans);
+  font-size:14px;font-weight:600;letter-spacing:1px;text-transform:uppercase;background:var(--accent);
+  color:#fff;text-decoration:none;transition:all .25s}
+.btn:hover{background:var(--accent2)}
+#loading{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="card">
+  <div id="loading">Loading payment details...</div>
+  <div id="content" style="display:none">
+    <div class="check">&#10003;</div>
+    <h1>Payment Successful</h1>
+    <div class="sub">Thank you for funding the People's AI.</div>
+    <div class="detail"><span class="label">Amount</span><span class="val" id="pAmount">—</span></div>
+    <div class="detail"><span class="label">$WWWIII Tokens</span><span class="val" id="pTokens">—</span></div>
+    <div class="detail"><span class="label">Status</span><span class="val" style="color:var(--green)">Confirmed</span></div>
+    <div class="note">Your $WWWIII tokens will be distributed to your wallet once mainnet launches. Keep your wallet address handy — you'll receive an airdrop notification.</div>
+    <a href="/" class="btn">Back to WWWIII</a>
+  </div>
+</div>
+<script>
+(async () => {
+  const params = new URLSearchParams(window.location.search);
+  const sessionId = params.get('session_id');
+  if (!sessionId) { document.getElementById('loading').textContent = 'No session found.'; return; }
+  try {
+    const res = await fetch('/api/checkout-session/' + sessionId);
+    const data = await res.json();
+    if (data.status === 'paid') {
+      document.getElementById('pAmount').textContent = '$' + Number(data.amount).toLocaleString();
+      document.getElementById('pTokens').textContent = Number(data.tokens).toLocaleString() + ' WWWIII';
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('content').style.display = 'block';
+    } else {
+      document.getElementById('loading').textContent = 'Payment pending or not completed.';
+    }
+  } catch(e) {
+    document.getElementById('loading').textContent = 'Could not load payment details.';
+  }
+})();
+</script>
+</body>
+</html>

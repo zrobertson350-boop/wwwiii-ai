@@ -979,22 +979,40 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-function payWithCard() {
+async function payWithCard() {
   if (selectedCardAmount < 5) {
     alert('Minimum donation is $5.');
     return;
   }
-  // Stripe Checkout redirect — replace with your Stripe Payment Link
-  // For now, show setup instructions
-  if (typeof STRIPE_PAYMENT_LINK !== 'undefined' && STRIPE_PAYMENT_LINK) {
-    window.open(STRIPE_PAYMENT_LINK + '?amount=' + selectedCardAmount * 100, '_blank');
-  } else {
-    alert('Card payments coming soon! For now, use ETH to purchase tokens.\n\nTo enable card payments, set up a Stripe account at stripe.com and add your payment link.');
+
+  const btn = document.querySelector('#panel-card .fund-btn-primary');
+  const origText = btn.textContent;
+  btn.textContent = 'Processing...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('/api/create-checkout-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        amount: selectedCardAmount,
+        walletAddress: userAccount || '',
+      }),
+    });
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      alert('Error: ' + (data.error || 'Could not create checkout session'));
+      btn.textContent = origText;
+      btn.disabled = false;
+    }
+  } catch (err) {
+    alert('Payment failed. Please try again.');
+    btn.textContent = origText;
+    btn.disabled = false;
   }
 }
-
-// Set this to your Stripe Payment Link URL once created
-var STRIPE_PAYMENT_LINK = '';
 
 function copyAddress() {
   const el = document.getElementById('fundAddress');

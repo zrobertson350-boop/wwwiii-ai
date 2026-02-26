@@ -220,11 +220,31 @@ section{padding:100px 0}
 .fund-address code{font-family:var(--mono);font-size:13px;color:var(--accent2);letter-spacing:.5px}
 .fund-address .copy-hint{font-size:11px;color:var(--muted)}
 .fund-or{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:3px;text-align:center;margin:32px 0}
-.fund-progress{margin-bottom:48px}
-.fund-progress-bar{height:8px;background:var(--surface2);border-radius:100px;overflow:hidden;margin-bottom:12px}
-.fund-progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:100px;transition:width 1s ease-out}
-.fund-progress-stats{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;color:var(--muted)}
-.fund-progress-stats .raised{color:var(--accent2)}
+/* ── FUNDING CIRCLE ── */
+.fund-circle-wrap{display:flex;flex-direction:column;align-items:center;margin-bottom:48px}
+.fund-circle{position:relative;width:320px;height:320px}
+@media(max-width:600px){.fund-circle{width:260px;height:260px}}
+.fund-circle svg{width:100%;height:100%;transform:rotate(-90deg)}
+.fund-circle-bg{fill:none;stroke:var(--surface2);stroke-width:18}
+.fund-circle-fill{fill:none;stroke:url(#fundGradient);stroke-width:18;stroke-linecap:round;
+  transition:stroke-dashoffset 2s cubic-bezier(.4,0,.2,1)}
+.fund-circle-glow{fill:none;stroke:url(#fundGradient);stroke-width:18;stroke-linecap:round;
+  filter:blur(12px);opacity:.4;transition:stroke-dashoffset 2s cubic-bezier(.4,0,.2,1)}
+.fund-circle-center{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center}
+.fund-circle-raised{font-family:var(--sans);font-size:clamp(28px,5vw,42px);font-weight:700;
+  background:linear-gradient(135deg,var(--accent2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.fund-circle-label{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:3px;
+  text-transform:uppercase;margin-bottom:4px}
+.fund-circle-pct{font-family:var(--mono);font-size:14px;color:var(--accent2);margin-top:4px}
+.fund-circle-goal{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:2px}
+.fund-milestones{display:flex;gap:24px;margin-top:24px;flex-wrap:wrap;justify-content:center}
+.fund-ms{text-align:center;padding:12px 16px;background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;min-width:100px;transition:border-color .3s}
+.fund-ms.hit{border-color:var(--green)}
+.fund-ms-val{font-family:var(--sans);font-size:16px;font-weight:700;color:var(--ink)}
+.fund-ms-label{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+.fund-ms.hit .fund-ms-val{color:var(--green)}
 
 /* ── COMMUNITY ── */
 .comm-row{display:flex;gap:16px;flex-wrap:wrap}
@@ -334,11 +354,34 @@ footer .f-links a{color:var(--muted)}
       <div style="font-family:var(--mono);font-size:13px;color:var(--muted);margin-top:4px;letter-spacing:1px">To train the first publicly built LLM</div>
     </div>
 
-    <div class="fund-progress">
-      <div class="fund-progress-bar"><div class="fund-progress-fill" id="fundBar" style="width:0%"></div></div>
-      <div class="fund-progress-stats">
-        <span class="raised" id="fundRaised">$0 raised</span>
-        <span>$1,000,000,000</span>
+    <div class="fund-circle-wrap">
+      <div class="fund-circle">
+        <svg viewBox="0 0 200 200">
+          <defs>
+            <linearGradient id="fundGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#6c5ce7"/>
+              <stop offset="50%" style="stop-color:#a29bfe"/>
+              <stop offset="100%" style="stop-color:#f0c040"/>
+            </linearGradient>
+          </defs>
+          <circle class="fund-circle-bg" cx="100" cy="100" r="85"/>
+          <circle class="fund-circle-glow" cx="100" cy="100" r="85"
+            stroke-dasharray="534.07" stroke-dashoffset="534.07" id="fundCircleGlow"/>
+          <circle class="fund-circle-fill" cx="100" cy="100" r="85"
+            stroke-dasharray="534.07" stroke-dashoffset="534.07" id="fundCircleFill"/>
+        </svg>
+        <div class="fund-circle-center">
+          <div class="fund-circle-label">Raised</div>
+          <div class="fund-circle-raised" id="fundRaisedAmount">$0</div>
+          <div class="fund-circle-pct" id="fundRaisedPct">0.00%</div>
+          <div class="fund-circle-goal">of $1,000,000,000</div>
+        </div>
+      </div>
+      <div class="fund-milestones">
+        <div class="fund-ms" id="ms-1m"><div class="fund-ms-val">$1M</div><div class="fund-ms-label">Seed</div></div>
+        <div class="fund-ms" id="ms-10m"><div class="fund-ms-val">$10M</div><div class="fund-ms-label">Compute</div></div>
+        <div class="fund-ms" id="ms-100m"><div class="fund-ms-val">$100M</div><div class="fund-ms-label">Training</div></div>
+        <div class="fund-ms" id="ms-1b"><div class="fund-ms-val">$1B</div><div class="fund-ms-label">Goal</div></div>
       </div>
     </div>
 
@@ -935,6 +978,48 @@ async function fundTier(tier) {
     }
   }
 }
+
+// ── Funding Circle ──
+const FUND_GOAL = 1_000_000_000; // $1B
+const CIRCLE_CIRCUMFERENCE = 534.07; // 2 * PI * 85
+
+function updateFundingCircle(raised) {
+  const pct = Math.min(raised / FUND_GOAL, 1);
+  const offset = CIRCLE_CIRCUMFERENCE * (1 - pct);
+
+  const fill = document.getElementById('fundCircleFill');
+  const glow = document.getElementById('fundCircleGlow');
+  if (fill) fill.setAttribute('stroke-dashoffset', offset);
+  if (glow) glow.setAttribute('stroke-dashoffset', offset);
+
+  const amtEl = document.getElementById('fundRaisedAmount');
+  const pctEl = document.getElementById('fundRaisedPct');
+  if (amtEl) amtEl.textContent = '$' + raised.toLocaleString();
+  if (pctEl) pctEl.textContent = (pct * 100).toFixed(pct < 0.01 ? 4 : 2) + '%';
+
+  // Milestones
+  if (raised >= 1_000_000) document.getElementById('ms-1m')?.classList.add('hit');
+  if (raised >= 10_000_000) document.getElementById('ms-10m')?.classList.add('hit');
+  if (raised >= 100_000_000) document.getElementById('ms-100m')?.classList.add('hit');
+  if (raised >= 1_000_000_000) document.getElementById('ms-1b')?.classList.add('hit');
+}
+
+// Fetch real raised amount from server (ETH presale + Stripe)
+async function fetchFundingTotal() {
+  try {
+    const res = await fetch('/api/funding-total');
+    const data = await res.json();
+    updateFundingCircle(data.totalUSD || 0);
+  } catch(e) {
+    updateFundingCircle(0);
+  }
+}
+
+// Initialize on load and refresh every 30s
+document.addEventListener('DOMContentLoaded', () => {
+  fetchFundingTotal();
+  setInterval(fetchFundingTotal, 30000);
+});
 
 // ── Payment tab switching ──
 function switchPayTab(tab) {

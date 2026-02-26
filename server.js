@@ -55,6 +55,43 @@ app.post('/api/create-checkout-session', async (req, res) => {
   }
 });
 
+// Funding total — aggregates Stripe payments
+app.get('/api/funding-total', async (req, res) => {
+  try {
+    // Sum all successful Stripe payments
+    let totalCents = 0;
+    let hasMore = true;
+    let startingAfter = null;
+
+    while (hasMore) {
+      const params = { limit: 100, status: 'complete' };
+      if (startingAfter) params.starting_after = startingAfter;
+
+      const sessions = await stripe.checkout.sessions.list(params);
+      for (const s of sessions.data) {
+        if (s.payment_status === 'paid') {
+          totalCents += s.amount_total || 0;
+        }
+      }
+      hasMore = sessions.has_more;
+      if (sessions.data.length > 0) {
+        startingAfter = sessions.data[sessions.data.length - 1].id;
+      } else {
+        hasMore = false;
+      }
+    }
+
+    const totalUSD = totalCents / 100;
+
+    // TODO: Also add ETH presale value by reading contract totalRaised and converting via price API
+
+    res.json({ totalUSD, stripeUSD: totalUSD });
+  } catch (err) {
+    console.error('Funding total error:', err.message);
+    res.json({ totalUSD: 0, stripeUSD: 0 });
+  }
+});
+
 // Check payment status
 app.get('/api/checkout-session/:id', async (req, res) => {
   try {

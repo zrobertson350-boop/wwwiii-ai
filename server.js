@@ -33,8 +33,8 @@ app.post('/api/create-checkout-session', async (req, res) => {
         price_data: {
           currency: 'usd',
           product_data: {
-            name: 'WWWIII — Donate to the AI Fund',
-            description: `Donation to fund the first publicly built LLM. You will receive $WWWIII tokens matched to your contribution when the token launches.`,
+            name: 'WWWIII — AI Development Fund',
+            description: `Donation to fund the first publicly built large language model. Your contribution is recorded and will determine your pro rata allocation of $WWWIII tokens if and when the token launches.`,
           },
           unit_amount: cents,
         },
@@ -57,7 +57,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
 
 // Funding total — aggregates all donations
 // Base amount covers any donations tracked before Stripe (or manual additions)
-const BASE_FUNDED_USD = 25; // Initial seed funding
+const BASE_FUNDED_USD = 0; // Tracks from Stripe only
 
 app.get('/api/funding-total', async (req, res) => {
   try {
@@ -66,19 +66,20 @@ app.get('/api/funding-total', async (req, res) => {
     let hasMore = true;
     let startingAfter = null;
 
+    // Sum charges minus refunds for accurate total
     while (hasMore) {
-      const params = { limit: 100, status: 'complete' };
+      const params = { limit: 100 };
       if (startingAfter) params.starting_after = startingAfter;
 
-      const sessions = await stripe.checkout.sessions.list(params);
-      for (const s of sessions.data) {
-        if (s.payment_status === 'paid') {
-          totalCents += s.amount_total || 0;
+      const charges = await stripe.charges.list(params);
+      for (const c of charges.data) {
+        if (c.status === 'succeeded') {
+          totalCents += (c.amount - c.amount_refunded);
         }
       }
-      hasMore = sessions.has_more;
-      if (sessions.data.length > 0) {
-        startingAfter = sessions.data[sessions.data.length - 1].id;
+      hasMore = charges.has_more;
+      if (charges.data.length > 0) {
+        startingAfter = charges.data[charges.data.length - 1].id;
       } else {
         hasMore = false;
       }

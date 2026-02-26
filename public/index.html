@@ -385,96 +385,46 @@ footer .f-links a{color:var(--muted)}
       </div>
     </div>
 
-    <!-- PAYMENT METHOD TABS -->
-    <div class="pay-tabs">
-      <button class="pay-tab active" onclick="switchPayTab('card')">Card / Apple Pay</button>
-      <button class="pay-tab" onclick="switchPayTab('crypto')">Crypto (ETH)</button>
-    </div>
-
-    <!-- CARD / APPLE PAY TAB (DEFAULT) -->
-    <div class="pay-panel" id="panel-card">
-      <div class="card-donate">
-        <div class="card-donate-header">
-          <div class="card-donate-title">Donate to the AI Fund</div>
-          <div class="card-donate-sub">100% of your donation goes toward compute, researchers, and infrastructure to build the People's AI. All donors will receive <strong>$WWWIII governance tokens</strong> when the token launches — matched to the amount you contributed.</div>
-        </div>
-        <div class="card-amounts">
-          <button class="card-amt" onclick="selectAmount(10)">$10</button>
-          <button class="card-amt" onclick="selectAmount(25)">$25</button>
-          <button class="card-amt active" onclick="selectAmount(100)">$100</button>
-          <button class="card-amt" onclick="selectAmount(500)">$500</button>
-          <button class="card-amt" onclick="selectAmount(1000)">$1,000</button>
-          <button class="card-amt" onclick="selectAmount(5000)">$5,000</button>
-        </div>
-        <div class="card-custom">
-          <label for="customAmt">Custom amount (USD)</label>
-          <input type="number" id="customAmt" placeholder="Enter amount" min="5" step="1" value="100">
-        </div>
-        <div class="card-token-preview" id="cardTokenPreview">
-          You'll receive <strong>50,000 $WWWIII</strong> tokens when the token launches
-        </div>
-        <button class="fund-btn fund-btn-primary" style="width:100%;padding:16px;font-size:16px;margin-top:16px" onclick="payWithCard()">
-          Donate $100
-        </button>
-        <div class="card-methods">
-          <span>Accepted:</span>
-          <span class="method-badge">Visa</span>
-          <span class="method-badge">Mastercard</span>
-          <span class="method-badge">Apple Pay</span>
-          <span class="method-badge">Google Pay</span>
-          <span class="method-badge">AMEX</span>
-        </div>
+    <!-- DONATE -->
+    <div class="card-donate">
+      <div class="card-donate-header">
+        <div class="card-donate-title">Donate to the AI Fund</div>
+        <div class="card-donate-sub">100% of your donation funds compute, researchers, and infrastructure. Your contribution is recorded — early donors receive a <strong>pro rata allocation</strong> of $WWWIII tokens if and when the token launches.</div>
+      </div>
+      <div class="card-amounts">
+        <button class="card-amt" onclick="selectAmount(10)">$10</button>
+        <button class="card-amt" onclick="selectAmount(25)">$25</button>
+        <button class="card-amt active" onclick="selectAmount(100)">$100</button>
+        <button class="card-amt" onclick="selectAmount(500)">$500</button>
+        <button class="card-amt" onclick="selectAmount(1000)">$1,000</button>
+        <button class="card-amt" onclick="selectAmount(5000)">$5,000</button>
+      </div>
+      <div class="card-custom">
+        <label for="customAmt">Custom amount (USD)</label>
+        <input type="number" id="customAmt" placeholder="Enter amount" min="5" step="1" value="100">
+      </div>
+      <div class="card-token-preview" id="cardTokenPreview">
+        Your pro rata share: <strong>0.000005%</strong> of $WWWIII token supply
+      </div>
+      <button class="fund-btn fund-btn-primary" style="width:100%;padding:16px;font-size:16px;margin-top:16px" onclick="payWithCard()">
+        Donate $100
+      </button>
+      <div class="card-methods">
+        <span>Accepted:</span>
+        <span class="method-badge">Visa</span>
+        <span class="method-badge">Mastercard</span>
+        <span class="method-badge">Apple Pay</span>
+        <span class="method-badge">Google Pay</span>
+        <span class="method-badge">AMEX</span>
       </div>
     </div>
 
-    <!-- CRYPTO TAB -->
-    <div class="pay-panel" id="panel-crypto" style="display:none">
-      <div class="fund-tiers">
-        <div class="fund-tier">
-          <div class="fund-tier-name">Supporter</div>
-          <div class="fund-tier-price">0.05<span class="eth">ETH</span></div>
-          <div class="fund-tier-tokens">50,000 $WWWIII</div>
-          <ul class="fund-tier-perks">
-            <li>Early access to model checkpoints</li>
-            <li>DAO governance voting rights</li>
-            <li>Supporter badge on contributor wall</li>
-          </ul>
-          <button class="fund-btn fund-btn-outline" onclick="fundTier('supporter')">Donate with ETH</button>
-        </div>
-        <div class="fund-tier featured">
-          <div class="fund-tier-name">Builder</div>
-          <div class="fund-tier-price">0.25<span class="eth">ETH</span></div>
-          <div class="fund-tier-tokens">300,000 $WWWIII</div>
-          <ul class="fund-tier-perks">
-            <li>Everything in Supporter</li>
-            <li>Priority API access at launch</li>
-            <li>Name in model credits</li>
-            <li>Private Discord channel</li>
-          </ul>
-          <button class="fund-btn fund-btn-primary" onclick="fundTier('builder')">Donate with ETH</button>
-        </div>
-        <div class="fund-tier">
-          <div class="fund-tier-name">Architect</div>
-          <div class="fund-tier-price">1.0<span class="eth">ETH</span></div>
-          <div class="fund-tier-tokens">1,500,000 $WWWIII</div>
-          <ul class="fund-tier-perks">
-            <li>Everything in Builder</li>
-            <li>Vote on architecture decisions</li>
-            <li>Dedicated compute credit</li>
-            <li>Advisory council seat</li>
-          </ul>
-          <button class="fund-btn fund-btn-outline" onclick="fundTier('architect')">Donate with ETH</button>
-        </div>
-      </div>
-
-      <div class="fund-or">— OR SEND ETH DIRECTLY —</div>
-
-      <div class="fund-wallet">
-        <div class="fund-wallet-label">Treasury Wallet (Ethereum)</div>
-        <div class="fund-address" onclick="copyAddress()" id="fundAddress">
-          <code>0xda04fb01682DBFBF3f7ac30B2FEc251c7e72C6B9</code>
-          <span class="copy-hint">Click to copy</span>
-        </div>
+    <!-- $WWWIII TOKEN — COMING SOON -->
+    <div style="margin-top:48px;text-align:center;padding:32px;border:1px dashed var(--border);border-radius:12px">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--accent2);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px">Coming Soon</div>
+      <div style="font-family:var(--sans);font-size:22px;font-weight:600;margin-bottom:8px">$WWWIII Token</div>
+      <div style="color:var(--muted);font-size:14px;max-width:480px;margin:0 auto;line-height:1.6">
+        The $WWWIII governance token is being developed with full regulatory compliance (FCA &amp; SEC). Early donors will receive tokens <strong>pro rata</strong> — your share is proportional to your contribution relative to total funds raised. The earlier you donate, the larger your stake.
       </div>
     </div>
   </div>
@@ -1021,17 +971,8 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(fetchFundingTotal, 30000);
 });
 
-// ── Payment tab switching ──
-function switchPayTab(tab) {
-  document.querySelectorAll('.pay-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.pay-panel').forEach(p => p.style.display = 'none');
-  event.target.classList.add('active');
-  document.getElementById('panel-' + tab).style.display = 'block';
-}
-
 // ── Card payment ──
 let selectedCardAmount = 100;
-const TOKENS_PER_DOLLAR = 500; // 500 tokens per $1 (same as supporter rate: $125 ≈ 0.05 ETH → 50k tokens)
 
 function selectAmount(amt) {
   selectedCardAmount = amt;
@@ -1042,10 +983,11 @@ function selectAmount(amt) {
 }
 
 function updateCardPreview(amt) {
-  const tokens = (amt * TOKENS_PER_DOLLAR).toLocaleString();
+  const proRata = ((amt / FUND_GOAL) * 100);
+  const display = proRata < 0.0001 ? proRata.toExponential(2) : proRata.toFixed(6);
   document.getElementById('cardTokenPreview').innerHTML =
-    'You\'ll receive <strong>' + tokens + ' $WWWIII</strong> tokens when the token launches';
-  const payBtn = document.querySelector('#panel-card .fund-btn-primary');
+    'Your pro rata share: <strong>' + display + '%</strong> of $WWWIII token supply';
+  const payBtn = document.querySelector('.card-donate .fund-btn-primary');
   if (payBtn) payBtn.textContent = 'Donate $' + amt.toLocaleString();
 }
 
@@ -1057,7 +999,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const val = parseInt(this.value) || 0;
       selectedCardAmount = val;
       document.querySelectorAll('.card-amt').forEach(b => {
-        b.classList.toggle('active', parseInt(b.textContent.replace(/[$,]/g, '')) === val);
+          b.classList.toggle('active', parseInt(b.textContent.replace(/[$,]/g, '')) === val);
       });
       updateCardPreview(val);
     });

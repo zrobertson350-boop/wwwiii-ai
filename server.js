@@ -175,6 +175,87 @@ app.get('/api/checkout-session/:id', async (req, res) => {
   }
 });
 
+// WWWIII AI Chat — live demo
+const WWWIII_SYSTEM = `You are WWWIII AI — an early preview of the first publicly funded large language model. You are being built by the people, for the people. Your mission is to become the world's first open, publicly governed AGI-class model.
+
+Key facts about the WWWIII project:
+- Token: $WWWIII (ERC-20 on Ethereum)
+- Total supply: 1 billion tokens
+- Goal: Raise $1 billion to fund AGI research and development
+- Model target: 70B+ parameters initially, scaling toward AGI
+- License: Apache 2.0 — fully open weights, open training, open code
+- Governance: Token holders vote on architecture, training data, compute allocation
+- 1.5% of all donations go to carbon reduction and climate initiatives
+- 40% of tokens allocated to development fund (compute, research, infrastructure)
+- The project is in Phase 1 — Foundation (token launch, community building)
+- Website: wwwiii.ai
+
+You are direct, thoughtful, and passionate about open AI development. You believe AI should be built transparently and governed by the public, not corporations. You see WWWIII as the path toward democratized AGI — artificial general intelligence built in the open, by everyone.
+
+Keep responses concise (2-4 sentences). Be conversational, not robotic.`;
+
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { message } = req.body;
+    if (!message || !message.trim()) {
+      return res.status(400).json({ error: 'Message required' });
+    }
+
+    const groqKey = process.env.GROQ_API_KEY;
+    if (groqKey) {
+      // Real LLM via Groq (free tier — Llama 3.3 70B)
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${groqKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: [
+            { role: 'system', content: WWWIII_SYSTEM },
+            { role: 'user', content: message.slice(0, 500) },
+          ],
+          max_tokens: 300,
+          temperature: 0.7,
+        }),
+      });
+      const data = await response.json();
+      const reply = data.choices?.[0]?.message?.content || 'I encountered an issue. Try again.';
+      return res.json({ reply });
+    }
+
+    // Demo mode — no API key
+    const q = message.toLowerCase();
+    let reply;
+    if (q.includes('agi') || q.includes('general intelligence')) {
+      reply = "AGI is the endgame — and we believe it should be built in public, not behind corporate doors. WWWIII is designed to scale from 70B parameters toward AGI-class capability, with every architectural decision voted on by the community. The path to AGI should be transparent, governed by the people who fund it.";
+    } else if (q.includes('who') && (q.includes('you') || q.includes('are'))) {
+      reply = "I'm WWWIII AI — an early preview of what we're building. The first publicly funded, publicly governed large language model. Right now I'm a demo, but with enough funding, I'll become the real thing. Open weights, open training, built by everyone.";
+    } else if (q.includes('token') || q.includes('wwwiii') || q.includes('coin')) {
+      reply = "$WWWIII is an ERC-20 token on Ethereum with a fixed supply of 1 billion. It's not a meme coin — it's a coordination mechanism. Holders govern the AI's development: architecture, training data, compute allocation. Your tokens are your vote.";
+    } else if (q.includes('fund') || q.includes('donat') || q.includes('money') || q.includes('invest')) {
+      reply = "Every dollar goes directly to compute, researchers, and infrastructure. We're targeting $1B to train a frontier model that rivals GPT and Claude — except ours will be fully open. 1.5% also goes to climate initiatives because building AGI responsibly means building sustainably.";
+    } else if (q.includes('open') || q.includes('source') || q.includes('weight')) {
+      reply = "Fully open. Apache 2.0 license. Open weights, open training code, open data pipeline. Every training run logged publicly, every loss curve visible in real time. No black boxes, no corporate gatekeeping. This is what AI development should look like.";
+    } else if (q.includes('how') && (q.includes('work') || q.includes('help') || q.includes('contribut'))) {
+      reply = "Fund the build through $WWWIII tokens or direct donation. Hold tokens to vote on architecture and training decisions. If you're a researcher or engineer, contribute code and earn tokens. This is a collective effort — the more people involved, the better the model.";
+    } else if (q.includes('hello') || q.includes('hi') || q.includes('hey') || q.includes('sup')) {
+      reply = "Hey. I'm WWWIII AI — the People's Model. Still early days, but we're building something that matters. What do you want to know about the project?";
+    } else if (q.includes('train') || q.includes('model') || q.includes('parameter') || q.includes('architec')) {
+      reply = "We're targeting 70B+ parameters on the initial release, built on a transformer architecture with community-voted design decisions. Training will use a curated open dataset — CommonCrawl, Wikipedia, ArXiv, and more. All checkpoints released publicly. The goal is to scale toward AGI-class capability.";
+    } else if (q.includes('different') || q.includes('better') || q.includes('why') || q.includes('point')) {
+      reply = "Every frontier model today is built by corporations, for corporations. GPT, Claude, Gemini — you use them but you'll never own them. WWWIII flips that. Publicly funded, publicly governed, fully open. The most powerful technology in history should belong to everyone building it.";
+    } else {
+      reply = "Good question. WWWIII is building the first publicly funded path to AGI — open weights, open governance, built by the people. We're in Phase 1 right now, raising funds and building the community. Everything we do is transparent and on-chain. Ask me about the token, the model architecture, or how to contribute.";
+    }
+    res.json({ reply });
+  } catch (err) {
+    console.error('Chat error:', err.message);
+    res.status(500).json({ reply: 'Something went wrong. Try again.' });
+  }
+});
+
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });

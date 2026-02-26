@@ -10,7 +10,7 @@
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="canonical" href="https://wwwiii.ai/">
-<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -38,7 +38,6 @@
   ]
 }
 </script>
-<link rel="icon" type="image/jpeg" href="/favicon.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -141,7 +140,7 @@ nav .wrap{display:flex;justify-content:space-between;align-items:center}
 /* ── PROTOCOL STATS ── */
 .proto-strip{border-top:1px solid var(--border);border-bottom:1px solid var(--border);
   background:linear-gradient(180deg,rgba(12,12,18,.95),rgba(5,5,8,.98));
-  padding:32px 0;position:relative;overflow:hidden}
+  padding:20px 0;position:relative;overflow:hidden;margin-bottom:-1px}
 .proto-strip::before{content:'';position:absolute;inset:0;
   background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(108,92,231,.015) 2px,rgba(108,92,231,.015) 4px);
   pointer-events:none}
@@ -1026,7 +1025,10 @@ function updateFundingCircle(raised) {
   if (glow) glow.setAttribute('stroke-dashoffset', offset);
   animateCount(raised);
   const pctEl = document.getElementById('fundRaisedPct');
-  if (pctEl) pctEl.textContent = (pct * 100).toFixed(pct < 0.0001 ? 6 : 2) + '%';
+  if (pctEl) {
+    const pctVal = pct * 100;
+    pctEl.textContent = pctVal < 0.01 ? '< 0.01%' : pctVal.toFixed(2) + '%';
+  }
   if (raised >= 1_000_000) document.getElementById('ms-1m')?.classList.add('hit');
   if (raised >= 10_000_000) document.getElementById('ms-10m')?.classList.add('hit');
   if (raised >= 100_000_000) document.getElementById('ms-100m')?.classList.add('hit');

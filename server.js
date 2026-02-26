@@ -58,7 +58,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
 
 // Funding total — aggregates all donations
 // Base amount covers any donations tracked before Stripe (or manual additions)
-const BASE_FUNDED_USD = 0; // All donations tracked via Stripe
+const BASE_FUNDED_USD = 25; // Founder seed donation
 
 app.get('/api/funding-total', async (req, res) => {
   try {

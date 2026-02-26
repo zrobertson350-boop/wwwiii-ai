@@ -51,6 +51,11 @@ nav .wrap{display:flex;justify-content:space-between;align-items:center}
 .nav-links{display:flex;gap:28px;font-size:13px;font-weight:500;text-transform:uppercase;letter-spacing:2px}
 .nav-links a{color:var(--muted);transition:color .2s}
 .nav-links a:hover{color:var(--ink)}
+.wallet-btn{font-family:var(--mono);font-size:12px;padding:8px 16px;border-radius:6px;border:1px solid var(--accent);
+  color:var(--accent2);background:transparent;cursor:pointer;letter-spacing:1px;transition:all .25s}
+.wallet-btn:hover{background:var(--accent);color:#fff}
+.wallet-btn.connected{border-color:var(--green);color:var(--green)}
+.wallet-btn.connected:hover{background:rgba(0,230,118,.1)}
 
 /* ── HERO ── */
 .hero{padding:180px 0 120px;text-align:center;position:relative}
@@ -234,10 +239,11 @@ footer .f-links a{color:var(--muted)}
       <a href="#mission">Mission</a>
       <a href="#token">Token</a>
       <a href="#roadmap">Roadmap</a>
-      <a href="#preamble">Preamble</a>
+      <a href="/whitepaper.html">Whitepaper</a>
       <a href="#fund">Fund</a>
       <a href="#contract">Contract</a>
     </div>
+    <button class="wallet-btn" id="walletBtn" onclick="connectWallet()">Connect Wallet</button>
   </div>
 </nav>
 
@@ -630,9 +636,9 @@ footer .f-links a{color:var(--muted)}
     <div class="fund-or">— OR SEND DIRECTLY —</div>
 
     <div class="fund-wallet">
-      <div class="fund-wallet-label">Treasury Wallet (Ethereum)</div>
+      <div class="fund-wallet-label">Presale Contract (Sepolia)</div>
       <div class="fund-address" onclick="copyAddress()" id="fundAddress">
-        <code>Contract address TBD — deploying soon</code>
+        <code>0xCD26a62fc178129F4b24759c329e0c1867d4e613</code>
         <span class="copy-hint">Click to copy</span>
       </div>
     </div>
@@ -648,9 +654,15 @@ footer .f-links a{color:var(--muted)}
       <a href="#mission">Mission</a>
       <a href="#token">Token</a>
       <a href="#roadmap">Roadmap</a>
-      <a href="#preamble">Preamble</a>
+      <a href="/whitepaper.html">Whitepaper</a>
       <a href="#fund">Fund</a>
       <a href="#contract">Contract</a>
+    </div>
+    <div class="f-links" style="margin-top:12px">
+      <a href="https://twitter.com/wwwiii_ai" target="_blank">Twitter/X</a>
+      <a href="https://discord.gg/wwwiii" target="_blank">Discord</a>
+      <a href="https://t.me/wwwiii_ai" target="_blank">Telegram</a>
+      <a href="https://github.com/wwwiii-ai" target="_blank">GitHub</a>
     </div>
   </div>
 </footer>
@@ -720,22 +732,139 @@ footer .f-links a{color:var(--muted)}
 </script>
 
 <script>
-function fundTier(tier){
-  const prices={supporter:'0.05',builder:'0.25',architect:'1.0'};
-  const tokens={supporter:'50,000',builder:'300,000',architect:'1,500,000'};
-  alert(`${tier.charAt(0).toUpperCase()+tier.slice(1)} tier selected — ${prices[tier]} ETH for ${tokens[tier]} $WWWIII.\n\nWallet connect launching soon. Join the waitlist.`);
-}
-function copyAddress(){
-  const el=document.getElementById('fundAddress');
-  const code=el.querySelector('code');
-  if(code.textContent.includes('TBD')){
-    alert('Contract not yet deployed. Coming soon.');
+const TOKEN_ADDRESS = '0x5201ee6ffb64aeA97Cf887bd6852ca572A15f33a';
+const PRESALE_ADDRESS = '0xCD26a62fc178129F4b24759c329e0c1867d4e613';
+const SEPOLIA_CHAIN_ID = '0xaa36a7'; // 11155111
+
+// Presale contract ABI (only the functions we need)
+const PRESALE_ABI = [
+  'function buySupporter() external payable',
+  'function buyBuilder() external payable',
+  'function buyArchitect() external payable',
+  'function saleActive() external view returns (bool)',
+  'function totalRaised() external view returns (uint256)',
+  'function totalTokensSold() external view returns (uint256)',
+  'function tokensRemaining() external view returns (uint256)',
+  'function contributed(address) external view returns (uint256)',
+  'function tokensBought(address) external view returns (uint256)',
+];
+
+let userAccount = null;
+
+async function connectWallet() {
+  const btn = document.getElementById('walletBtn');
+  if (!window.ethereum) {
+    alert('MetaMask not detected. Please install MetaMask to connect your wallet.');
+    window.open('https://metamask.io/download/', '_blank');
     return;
   }
-  navigator.clipboard.writeText(code.textContent).then(()=>{
-    const hint=el.querySelector('.copy-hint');
-    hint.textContent='Copied!';
-    setTimeout(()=>hint.textContent='Click to copy',2000);
+  try {
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    userAccount = accounts[0];
+    btn.textContent = userAccount.slice(0, 6) + '...' + userAccount.slice(-4);
+    btn.classList.add('connected');
+
+    // Switch to Sepolia if needed
+    try {
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: SEPOLIA_CHAIN_ID }],
+      });
+    } catch (switchErr) {
+      if (switchErr.code === 4902) {
+        await window.ethereum.request({
+          method: 'wallet_addEthereumChain',
+          params: [{
+            chainId: SEPOLIA_CHAIN_ID,
+            chainName: 'Sepolia Testnet',
+            rpcUrls: ['https://ethereum-sepolia-rpc.publicnode.com'],
+            nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+            blockExplorerUrls: ['https://sepolia.etherscan.io'],
+          }],
+        });
+      }
+    }
+  } catch (err) {
+    console.error('Wallet connection failed:', err);
+  }
+}
+
+// Auto-reconnect if already authorized
+if (window.ethereum) {
+  window.ethereum.request({ method: 'eth_accounts' }).then(accounts => {
+    if (accounts.length > 0) {
+      userAccount = accounts[0];
+      const btn = document.getElementById('walletBtn');
+      btn.textContent = userAccount.slice(0, 6) + '...' + userAccount.slice(-4);
+      btn.classList.add('connected');
+    }
+  });
+  window.ethereum.on('accountsChanged', accounts => {
+    if (accounts.length === 0) {
+      userAccount = null;
+      const btn = document.getElementById('walletBtn');
+      btn.textContent = 'Connect Wallet';
+      btn.classList.remove('connected');
+    } else {
+      userAccount = accounts[0];
+      const btn = document.getElementById('walletBtn');
+      btn.textContent = userAccount.slice(0, 6) + '...' + userAccount.slice(-4);
+      btn.classList.add('connected');
+    }
+  });
+}
+
+async function fundTier(tier) {
+  const prices = { supporter: '0.05', builder: '0.25', architect: '1.0' };
+  const tokens = { supporter: '50,000', builder: '300,000', architect: '1,500,000' };
+  const methods = {
+    supporter: 'buySupporter',
+    builder:   'buyBuilder',
+    architect: 'buyArchitect',
+  };
+  // Function selectors (first 4 bytes of keccak256 of function signature)
+  const selectors = {
+    supporter: '0x85990c61', // buySupporter()
+    builder:   '0xbe5695be', // buyBuilder()
+    architect: '0x737d3236', // buyArchitect()
+  };
+
+  if (!userAccount) {
+    await connectWallet();
+    if (!userAccount) return;
+  }
+
+  const ethAmount = prices[tier];
+  const weiHex = '0x' + BigInt(Math.round(parseFloat(ethAmount) * 1e18)).toString(16);
+
+  try {
+    const txHash = await window.ethereum.request({
+      method: 'eth_sendTransaction',
+      params: [{
+        from: userAccount,
+        to: PRESALE_ADDRESS,
+        value: weiHex,
+        data: selectors[tier],
+      }],
+    });
+    alert(`Transaction sent! ${ethAmount} ETH for ${tokens[tier]} $WWWIII tokens.\n\nTx: ${txHash}\n\nView on Etherscan:\nhttps://sepolia.etherscan.io/tx/${txHash}`);
+  } catch (err) {
+    if (err.code === 4001) {
+      // User rejected
+    } else {
+      console.error('Transaction failed:', err);
+      alert('Transaction failed. Please check your wallet and try again.');
+    }
+  }
+}
+
+function copyAddress() {
+  const el = document.getElementById('fundAddress');
+  const code = el.querySelector('code');
+  navigator.clipboard.writeText(code.textContent).then(() => {
+    const hint = el.querySelector('.copy-hint');
+    hint.textContent = 'Copied!';
+    setTimeout(() => hint.textContent = 'Click to copy', 2000);
   });
 }
 </script>

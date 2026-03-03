@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Discussion — WWWIII</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+<script src="/shared.js" defer></script>
+<style>
+.thread-wrap{max-width:800px;margin:0 auto;padding:120px 24px 80px}
+.thread-header{margin-bottom:32px}
+.thread-header h1{font-family:var(--sans);font-size:28px;font-weight:700;margin-bottom:12px}
+.thread-meta{display:flex;gap:12px;align-items:center;font-size:13px;color:var(--muted)}
+.thread-content{font-size:15px;line-height:1.8;color:var(--muted);padding:24px 0;border-bottom:1px solid var(--border)}
+.thread-actions{display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--border)}
+.replies-section{margin-top:32px}
+.replies-title{font-family:var(--sans);font-size:18px;font-weight:600;margin-bottom:24px}
+.reply{display:flex;gap:16px;padding:20px 0;border-bottom:1px solid var(--border)}
+.reply-body{flex:1}
+.reply-header{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+.reply-author{font-family:var(--sans);font-size:14px;font-weight:500}
+.reply-time{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.reply-content{font-size:14px;color:var(--muted);line-height:1.6}
+.reply-form{margin-top:24px}
+.nested{margin-left:40px;border-left:2px solid var(--border);padding-left:16px}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="glow-orb"></div>
+<nav id="mainNav"></nav>
+
+<div class="thread-wrap" id="threadContent">
+  <div class="spinner" style="padding:80px 0"></div>
+</div>
+
+<footer id="mainFooter"></footer>
+
+<script>
+let discussionId = null;
+
+async function loadThread() {
+  discussionId = new URLSearchParams(window.location.search).get('id');
+  if (!discussionId) return window.location.href = '/community.html';
+
+  const container = document.getElementById('threadContent');
+  try {
+    const res = await fetch(`/api/discussions/${discussionId}`);
+    if (!res.ok) throw new Error();
+    const d = await res.json();
+
+    document.title = d.title + ' — WWWIII';
+
+    // Build nested replies
+    const replyMap = {};
+    const topLevel = [];
+    (d.replies || []).forEach(r => { replyMap[r.id] = { ...r, children: [] }; });
+    (d.replies || []).forEach(r => {
+      if (r.parent_id && replyMap[r.parent_id]) {
+        replyMap[r.parent_id].children.push(replyMap[r.id]);
+      } else {
+        topLevel.push(replyMap[r.id]);
+      }
+    });
+
+    function renderReplies(replies, depth = 0) {
+      return replies.map(r => `
+        <div class="reply ${depth > 0 ? 'nested' : ''}">
+          <div class="upvote-btn" onclick="upvoteReply('${r.id}',this)" style="flex-shrink:0">
+            <span class="arrow">&#9650;</span>
+            <span class="count">${r.upvotes || 0}</span>
+          </div>
+          <div class="reply-body">
+            <div class="reply-header">
+              <span class="reply-author">${r.author?.display_name || 'Anonymous'}</span>
+              ${r.author?.tier && r.author.tier !== 'none' ? `<span class="badge badge-accent">${r.author.tier}</span>` : ''}
+              <span class="reply-time">${timeAgo(r.created_at)}</span>
+            </div>
+            <div class="reply-content">${r.content}</div>
+          </div>
+        </div>
+        ${r.children.length > 0 ? renderReplies(r.children, depth + 1) : ''}
+      `).join('');
+    }
+
+    container.innerHTML = `
+      <div style="margin-bottom:16px"><a href="/community.html" style="font-size:13px;color:var(--muted)">&larr; Back to Community</a></div>
+      <div class="thread-header">
+        <span class="badge badge-accent">${d.category}</span>
+        <h1>${d.title}</h1>
+        <div class="thread-meta">
+          <a href="/profile.html?id=${d.user_id}">${d.author?.display_name || 'Anonymous'}</a>
+          ${d.author?.tier && d.author.tier !== 'none' ? `<span class="badge badge-accent">${d.author.tier}</span>` : ''}
+          <span>${timeAgo(d.created_at)}</span>
+        </div>
+      </div>
+      <div class="thread-content">${d.content}</div>
+      <div class="thread-actions">
+        <div class="upvote-btn" onclick="upvoteDisc(this)">
+          <span class="arrow">&#9650;</span>
+          <span class="count">${d.upvotes || 0}</span>
+        </div>
+        <span style="font-family:var(--mono);font-size:12px;color:var(--muted);display:flex;align-items:center">${d.reply_count || d.replies?.length || 0} replies</span>
+      </div>
+      <div class="replies-section">
+        <div class="replies-title">Replies</div>
+        ${topLevel.length > 0 ? renderReplies(topLevel) : '<p style="color:var(--muted);font-size:14px">No replies yet. Be the first!</p>'}
+        <div class="reply-form">
+          <div class="form-group">
+            <textarea class="form-textarea" id="replyInput" placeholder="Write a reply..." rows="3"></textarea>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="submitReply()">Reply</button>
+        </div>
+      </div>
+    `;
+  } catch {
+    container.innerHTML = '<div class="empty-state"><h3>Discussion not found</h3><p><a href="/community.html">Back to community</a></p></div>';
+  }
+}
+
+async function submitReply(parentId = null) {
+  const content = document.getElementById('replyInput').value.trim();
+  if (!content) return;
+  try {
+    const res = await authFetch(`/api/discussions/${discussionId}/replies`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content, parent_id: parentId }),
+    });
+    if (res.ok) { showToast('Reply posted!'); loadThread(); }
+    else { const err = await res.json(); showToast(err.error || 'Sign in to reply', 'error'); }
+  } catch { showToast('Failed to reply', 'error'); }
+}
+
+async function upvoteDisc(btn) {
+  try {
+    const res = await authFetch('/api/discussions/upvote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target_type: 'discussion', target_id: discussionId }),
+    });
+    if (res.ok) { const { voted, upvotes } = await res.json(); btn.classList.toggle('voted', voted); btn.querySelector('.count').textContent = upvotes; }
+    else showToast('Sign in to vote', 'error');
+  } catch {}
+}
+
+async function upvoteReply(id, btn) {
+  try {
+    const res = await authFetch('/api/discussions/upvote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target_type: 'reply', target_id: id }),
+    });
+    if (res.ok) { const { voted, upvotes } = await res.json(); btn.classList.toggle('voted', voted); btn.querySelector('.count').textContent = upvotes; }
+    else showToast('Sign in to vote', 'error');
+  } catch {}
+}
+
+document.addEventListener('DOMContentLoaded', loadThread);
+</script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Store — WWWIII</title>
+<meta name="description" content="WWWIII Store — research papers, model access, compute credits, AI art, and digital collectibles.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+<script src="/shared.js" defer></script>
+<style>
+.store-filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:32px}
+.store-filter button{padding:6px 14px;border:1px solid var(--border);border-radius:20px;background:transparent;
+  color:var(--muted);font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .2s}
+.store-filter button:hover,.store-filter button.active{border-color:var(--accent);color:var(--accent2);background:rgba(108,92,231,.1)}
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:24px}
+.product-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color .3s,transform .3s}
+.product-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.product-img{width:100%;height:180px;object-fit:cover;background:var(--surface2)}
+.product-body{padding:24px}
+.product-type{font-family:var(--mono);font-size:10px;color:var(--accent2);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.product-card h3{font-family:var(--sans);font-size:16px;font-weight:600;margin-bottom:8px}
+.product-card p{color:var(--muted);font-size:13px;line-height:1.5;margin-bottom:16px}
+.product-price{display:flex;justify-content:space-between;align-items:center}
+.product-price-usd{font-family:var(--sans);font-size:20px;font-weight:700;color:var(--ink)}
+.product-price-eth{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.product-discount{font-family:var(--mono);font-size:10px;color:var(--gold);margin-top:4px}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="glow-orb"></div>
+<nav id="mainNav"></nav>
+
+<div class="page-header">
+  <div class="wrap">
+    <div class="section-tag">Store</div>
+    <div class="section-title">Digital Armory</div>
+    <div class="section-desc">Research papers, model access, compute credits, AI art, and digital collectibles. $WWWIII holders get discounts.</div>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <div class="store-filter" id="storeFilter">
+      <button class="active" onclick="filterProducts('all')">All</button>
+      <button onclick="filterProducts('research')">Research</button>
+      <button onclick="filterProducts('model')">Models</button>
+      <button onclick="filterProducts('api')">API Access</button>
+      <button onclick="filterProducts('compute')">Compute</button>
+      <button onclick="filterProducts('art')">AI Art</button>
+      <button onclick="filterProducts('merch')">Merch</button>
+    </div>
+    <div class="product-grid" id="productGrid">
+      <div class="spinner" style="grid-column:1/-1;padding:60px 0"></div>
+    </div>
+  </div>
+</section>
+
+<footer id="mainFooter"></footer>
+
+<script>
+async function loadProducts(type = 'all') {
+  const grid = document.getElementById('productGrid');
+  grid.innerHTML = '<div class="spinner" style="grid-column:1/-1;padding:60px 0"></div>';
+  try {
+    let url = '/api/store/products';
+    if (type !== 'all') url += `?type=${type}`;
+    const res = await fetch(url);
+    const products = await res.json();
+
+    if (!products?.length) {
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+        <div class="icon">&#128722;</div>
+        <h3>Store coming soon</h3>
+        <p>Research papers, model access, and digital collectibles will be available here.</p>
+      </div>`;
+      return;
+    }
+
+    grid.innerHTML = products.map(p => `
+      <a href="/product.html?slug=${p.slug}" class="product-card" style="color:inherit">
+        ${p.cover_image_url ? `<img class="product-img" src="${p.cover_image_url}" alt="">` : '<div class="product-img"></div>'}
+        <div class="product-body">
+          <div class="product-type">${p.type}</div>
+          <h3>${p.name}</h3>
+          <p>${(p.description || '').slice(0, 100)}</p>
+          <div class="product-price">
+            <div>
+              <div class="product-price-usd">$${p.price_usd}</div>
+              ${p.price_eth ? `<div class="product-price-eth">${p.price_eth} ETH</div>` : ''}
+            </div>
+            ${p.token_discount_pct ? `<span class="badge badge-gold">${p.token_discount_pct}% off for holders</span>` : ''}
+          </div>
+        </div>
+      </a>
+    `).join('');
+  } catch {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="icon">&#128722;</div>
+      <h3>Store coming soon</h3>
+      <p>Check back for research papers, model access, and digital collectibles.</p>
+    </div>`;
+  }
+}
+
+function filterProducts(type) {
+  document.querySelectorAll('.store-filter button').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  loadProducts(type);
+}
+
+document.addEventListener('DOMContentLoaded', () => loadProducts());
+</script>
+</body>
+</html>

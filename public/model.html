@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SYNTH Model Builder — WWWIII</title>
+<meta name="description" content="Explore and contribute to the SYNTH open model architecture. View code, submit proposals, and shape the first publicly built AI.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+<script src="/shared.js" defer></script>
+<style>
+.model-status{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-bottom:32px}
+.status-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 20px;text-align:center}
+.status-val{font-family:var(--sans);font-size:18px;font-weight:700;color:var(--accent2)}
+.status-label{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+.model-layout{display:grid;grid-template-columns:240px 1fr 300px;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden;min-height:600px}
+@media(max-width:900px){.model-layout{grid-template-columns:1fr;min-height:auto}}
+.model-panel{background:var(--bg);overflow:auto}
+.model-panel-header{background:var(--surface2);padding:12px 16px;border-bottom:1px solid var(--border);
+  font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;position:sticky;top:0;z-index:1}
+/* File tree */
+.file-tree{padding:12px}
+.file-item{padding:6px 12px;border-radius:6px;cursor:pointer;font-family:var(--mono);font-size:12px;
+  color:var(--muted);transition:all .2s;display:flex;align-items:center;gap:8px}
+.file-item:hover{background:rgba(108,92,231,.06);color:var(--ink)}
+.file-item.active{background:rgba(108,92,231,.1);color:var(--accent2)}
+.file-item .icon{font-size:14px}
+.file-item.dir{color:var(--ink);font-weight:500}
+.file-children{padding-left:16px}
+/* Code viewer */
+.code-viewer{padding:0}
+.code-viewer pre{margin:0;padding:20px;font-size:12px;line-height:1.7;background:transparent !important;overflow-x:auto}
+.code-viewer code{font-family:var(--mono) !important;font-size:12px !important}
+.code-empty{padding:60px 24px;text-align:center;color:var(--muted);font-size:14px}
+/* Proposals */
+.proposal-list{padding:12px}
+.proposal-item{padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;cursor:pointer;transition:border-color .2s}
+.proposal-item:hover{border-color:var(--accent)}
+.proposal-item h4{font-family:var(--sans);font-size:13px;font-weight:600;margin-bottom:4px}
+.proposal-item p{font-size:11px;color:var(--muted)}
+.proposal-meta{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:6px}
+.new-proposal{padding:12px}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="glow-orb"></div>
+<nav id="mainNav"></nav>
+
+<div class="page-header">
+  <div class="wrap">
+    <div class="section-tag">Open Model</div>
+    <div class="section-title">SYNTH Architecture</div>
+    <div class="section-desc">Explore the model code, review proposals, and contribute to the first publicly built AI architecture.</div>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <div class="model-status">
+      <div class="status-item"><div class="status-val">SYNTH-70B</div><div class="status-label">Model</div></div>
+      <div class="status-item"><div class="status-val">80</div><div class="status-label">Layers</div></div>
+      <div class="status-item"><div class="status-val">70B</div><div class="status-label">Parameters</div></div>
+      <div class="status-item"><div class="status-val">Gen 0</div><div class="status-label">Generation</div></div>
+    </div>
+
+    <div class="model-layout">
+      <!-- File Tree -->
+      <div class="model-panel" style="max-height:700px">
+        <div class="model-panel-header">Files</div>
+        <div class="file-tree" id="fileTree"><div class="spinner" style="padding:40px 0"></div></div>
+      </div>
+
+      <!-- Code Viewer -->
+      <div class="model-panel" style="max-height:700px">
+        <div class="model-panel-header" id="codeHeader">Select a file</div>
+        <div class="code-viewer" id="codeViewer">
+          <div class="code-empty">Select a file from the tree to view its source code.</div>
+        </div>
+      </div>
+
+      <!-- Proposals -->
+      <div class="model-panel" style="max-height:700px">
+        <div class="model-panel-header">Proposals</div>
+        <div class="proposal-list" id="proposalList"><div class="spinner" style="padding:40px 0"></div></div>
+        <div class="new-proposal">
+          <button class="btn btn-primary btn-sm" style="width:100%" onclick="toggleProposalForm()">Submit Proposal</button>
+          <div id="proposalForm" style="display:none;margin-top:12px">
+            <div class="form-group"><input class="form-input" id="propTitle" placeholder="Proposal title" style="font-size:12px;padding:8px 12px"></div>
+            <div class="form-group"><textarea class="form-textarea" id="propDesc" placeholder="Describe the change..." rows="2" style="font-size:12px;padding:8px 12px;min-height:60px"></textarea></div>
+            <div class="form-group"><textarea class="form-textarea" id="propDiff" placeholder="Paste your diff / code changes..." rows="4" style="font-size:11px;padding:8px 12px;min-height:80px;font-family:var(--mono)"></textarea></div>
+            <button class="btn btn-primary btn-sm" style="width:100%" onclick="submitProposal()">Submit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer id="mainFooter"></footer>
+
+<script>
+let currentFile = null;
+
+async function loadFileTree() {
+  try {
+    const res = await fetch('/api/synth/files');
+    const files = await res.json();
+    document.getElementById('fileTree').innerHTML = renderTree(files);
+  } catch {
+    document.getElementById('fileTree').innerHTML = '<p style="padding:12px;color:var(--muted);font-size:12px">Failed to load files</p>';
+  }
+}
+
+function renderTree(items) {
+  return items.map(item => {
+    if (item.type === 'directory') {
+      return `<div class="file-item dir" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+        <span class="icon">&#128193;</span>${item.name}
+      </div><div class="file-children">${renderTree(item.children || [])}</div>`;
+    }
+    return `<div class="file-item" onclick="loadFile('${item.path}',this)">
+      <span class="icon">&#128196;</span>${item.name}
+    </div>`;
+  }).join('');
+}
+
+async function loadFile(filePath, el) {
+  document.querySelectorAll('.file-item').forEach(f => f.classList.remove('active'));
+  if (el) el.classList.add('active');
+  currentFile = filePath;
+  document.getElementById('codeHeader').textContent = filePath;
+
+  try {
+    const res = await fetch(`/api/synth/file/${filePath}`);
+    const { content } = await res.json();
+
+    const ext = filePath.split('.').pop();
+    const lang = ext === 'py' ? 'python' : ext === 'md' ? 'markdown' : ext;
+
+    document.getElementById('codeViewer').innerHTML = `<pre><code class="language-${lang}">${escapeHtml(content)}</code></pre>`;
+
+    if (typeof hljs !== 'undefined') {
+      document.querySelectorAll('#codeViewer code').forEach(el => hljs.highlightElement(el));
+    }
+  } catch {
+    document.getElementById('codeViewer').innerHTML = '<div class="code-empty">Failed to load file</div>';
+  }
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function loadProposals() {
+  try {
+    const res = await fetch('/api/synth/proposals');
+    const proposals = await res.json();
+    const el = document.getElementById('proposalList');
+    if (!proposals?.length) {
+      el.innerHTML = '<p style="padding:12px;color:var(--muted);font-size:12px;text-align:center">No proposals yet</p>';
+      return;
+    }
+    el.innerHTML = proposals.map(p => `
+      <div class="proposal-item" onclick="showToast('Proposal: ${p.title}')">
+        <h4>${p.title}</h4>
+        <p>${(p.description || '').slice(0, 60)}</p>
+        <div class="proposal-meta">
+          <span>${p.author || 'Anonymous'}</span>
+          <span>&#9650; ${p.upvotes || 0}</span>
+        </div>
+      </div>
+    `).join('');
+  } catch {
+    document.getElementById('proposalList').innerHTML = '<p style="padding:12px;color:var(--muted);font-size:12px">No proposals yet</p>';
+  }
+}
+
+function toggleProposalForm() {
+  const form = document.getElementById('proposalForm');
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+async function submitProposal() {
+  const title = document.getElementById('propTitle').value.trim();
+  const description = document.getElementById('propDesc').value.trim();
+  const diff_content = document.getElementById('propDiff').value.trim();
+  if (!title || !diff_content) return showToast('Title and diff required', 'error');
+
+  try {
+    const res = await authFetch('/api/synth/proposals', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, description, diff_content, file_path: currentFile || '' }),
+    });
+    if (res.ok) {
+      showToast('Proposal submitted!');
+      document.getElementById('propTitle').value = '';
+      document.getElementById('propDesc').value = '';
+      document.getElementById('propDiff').value = '';
+      document.getElementById('proposalForm').style.display = 'none';
+      loadProposals();
+    } else {
+      const err = await res.json();
+      showToast(err.error || 'Sign in to submit', 'error');
+    }
+  } catch { showToast('Failed to submit', 'error'); }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadFileTree();
+  loadProposals();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Post — WWWIII</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
+<script src="/shared.js" defer></script>
+<style>
+.post-wrap{max-width:760px;margin:0 auto;padding:120px 24px 80px}
+.post-cover{width:100%;max-height:400px;object-fit:cover;border-radius:12px;margin-bottom:32px}
+.post-meta{display:flex;align-items:center;gap:16px;margin-bottom:32px;font-size:13px;color:var(--muted)}
+.post-meta img{width:36px;height:36px;border-radius:50%;border:2px solid var(--border)}
+.post-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:24px}
+.post-share{display:flex;gap:12px;margin:32px 0;padding:20px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.post-share a,.post-share button{padding:8px 16px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--muted);font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .2s;text-decoration:none}
+.post-share a:hover,.post-share button:hover{border-color:var(--accent);color:var(--accent2)}
+.comments-section{margin-top:48px}
+.comments-title{font-family:var(--sans);font-size:20px;font-weight:600;margin-bottom:24px}
+.comment{padding:16px 0;border-bottom:1px solid var(--border)}
+.comment-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.comment-author{font-family:var(--sans);font-size:14px;font-weight:500}
+.comment-time{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.comment-body{font-size:14px;color:var(--muted);line-height:1.6}
+.comment-form{margin-top:24px}
+.gated-overlay{text-align:center;padding:60px 24px;background:var(--surface);border:1px solid var(--border);border-radius:12px;margin:32px 0}
+.gated-overlay h3{font-family:var(--sans);font-size:20px;margin-bottom:8px}
+.gated-overlay p{color:var(--muted);font-size:14px;margin-bottom:16px}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="glow-orb"></div>
+<nav id="mainNav"></nav>
+
+<article class="post-wrap" id="postContent">
+  <div class="spinner" style="padding:80px 0"></div>
+</article>
+
+<footer id="mainFooter"></footer>
+
+<script>
+async function loadPost() {
+  const slug = new URLSearchParams(window.location.search).get('slug');
+  if (!slug) return window.location.href = '/blog.html';
+
+  const container = document.getElementById('postContent');
+
+  try {
+    const res = await fetch(`/api/posts/${slug}`);
+    if (!res.ok) throw new Error('Not found');
+    const post = await res.json();
+
+    document.title = post.title + ' — WWWIII';
+
+    // Update OG tags
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) metaDesc.content = post.excerpt || post.title;
+
+    if (post.gated) {
+      container.innerHTML = `
+        <h1 style="font-family:var(--sans);font-size:36px;font-weight:700;margin-bottom:16px">${post.title}</h1>
+        <div class="post-tags">${(post.tags || []).map(t => `<span class="badge badge-accent">${t}</span>`).join('')}</div>
+        <p style="color:var(--muted);font-size:15px;line-height:1.7;margin-bottom:32px">${post.excerpt || ''}</p>
+        <div class="gated-overlay">
+          <h3>Token Gated Content</h3>
+          <p>This post requires ${post.min_tier || 'supporter'} tier or higher to read.</p>
+          <a href="/join.html" class="btn btn-primary">Join WWWIII</a>
+        </div>
+      `;
+      return;
+    }
+
+    const contentHtml = typeof marked !== 'undefined' ? marked.parse(post.content) : post.content;
+    const shareUrl = encodeURIComponent(window.location.href);
+    const shareTitle = encodeURIComponent(post.title);
+
+    container.innerHTML = `
+      ${post.cover_image_url ? `<img class="post-cover" src="${post.cover_image_url}" alt="">` : ''}
+      <div class="post-tags">${(post.tags || []).map(t => `<span class="badge badge-accent">${t}</span>`).join('')}</div>
+      <h1 style="font-family:var(--sans);font-size:36px;font-weight:700;margin-bottom:16px;letter-spacing:-1px">${post.title}</h1>
+      <div class="post-meta">
+        ${post.author?.avatar_url ? `<img src="${post.author.avatar_url}" alt="">` : ''}
+        <span>${post.author?.display_name || 'WWWIII Team'}</span>
+        <span>${new Date(post.published_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+      </div>
+      <div class="md-content">${contentHtml}</div>
+      <div class="post-share">
+        <a href="https://twitter.com/intent/tweet?text=${shareTitle}&url=${shareUrl}" target="_blank">Share on X</a>
+        <a href="https://reddit.com/submit?url=${shareUrl}&title=${shareTitle}" target="_blank">Share on Reddit</a>
+        <button onclick="navigator.clipboard.writeText(window.location.href);showToast('Link copied!')">Copy Link</button>
+      </div>
+      <div class="comments-section">
+        <div class="comments-title">Comments (${post.comments?.length || 0})</div>
+        <div id="commentsList">
+          ${(post.comments || []).map(c => `
+            <div class="comment">
+              <div class="comment-header">
+                <span class="comment-author">${c.author?.display_name || 'Anonymous'}</span>
+                <span class="comment-time">${timeAgo(c.created_at)}</span>
+              </div>
+              <div class="comment-body">${c.content}</div>
+            </div>
+          `).join('')}
+        </div>
+        <div class="comment-form">
+          <div class="form-group">
+            <textarea class="form-textarea" id="commentInput" placeholder="Add a comment..." rows="3"></textarea>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="submitComment('${post.id}')">Post Comment</button>
+        </div>
+      </div>
+    `;
+  } catch (err) {
+    container.innerHTML = `<div class="empty-state"><h3>Post not found</h3><p><a href="/blog.html">Back to blog</a></p></div>`;
+  }
+}
+
+async function submitComment(postId) {
+  const content = document.getElementById('commentInput').value.trim();
+  if (!content) return;
+  try {
+    const res = await authFetch(`/api/posts/${postId}/comments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content }),
+    });
+    if (res.ok) {
+      showToast('Comment posted!');
+      loadPost();
+    } else {
+      const err = await res.json();
+      showToast(err.error || 'Must be signed in to comment', 'error');
+    }
+  } catch { showToast('Failed to post comment', 'error'); }
+}
+
+document.addEventListener('DOMContentLoaded', loadPost);
+</script>
+</body>
+</html>

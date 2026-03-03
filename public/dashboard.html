@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — WWWIII</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+<script src="/shared.js" defer></script>
+<style>
+.dash-wrap{max-width:1000px;margin:0 auto;padding:120px 24px 80px}
+.dash-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:32px;flex-wrap:wrap;gap:16px}
+.dash-header h1{font-family:var(--sans);font-size:28px;font-weight:700}
+.dash-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:32px}
+.dash-stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;text-align:center}
+.dash-stat-val{font-family:var(--sans);font-size:28px;font-weight:700;color:var(--ink);margin-bottom:4px}
+.dash-stat-label{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+.dash-section{margin-bottom:32px}
+.dash-section h2{font-family:var(--sans);font-size:18px;font-weight:600;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.dash-profile-form{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:32px}
+.nft-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px}
+.nft-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;text-align:center}
+.nft-card img{width:100%;aspect-ratio:1;object-fit:cover}
+.nft-card-info{padding:12px;font-size:12px}
+.claim-item{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border:1px solid var(--border);
+  border-radius:8px;margin-bottom:8px;background:var(--surface)}
+.claim-item .amount{font-family:var(--mono);font-size:16px;font-weight:600;color:var(--accent2)}
+.claim-item .reason{font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="glow-orb"></div>
+<nav id="mainNav"></nav>
+
+<div class="dash-wrap" id="dashContent">
+  <div class="spinner" style="padding:80px 0"></div>
+</div>
+
+<footer id="mainFooter"></footer>
+
+<script>
+async function loadDashboard() {
+  const container = document.getElementById('dashContent');
+
+  // Wait for auth
+  await new Promise(r => setTimeout(r, 600));
+  if (!_currentUser) {
+    window.location.href = '/join.html';
+    return;
+  }
+
+  const profile = _currentProfile || {};
+
+  // Load claims and NFTs in parallel
+  let claims = [], nfts = [];
+  try {
+    const [claimsRes, nftsRes] = await Promise.all([
+      authFetch('/api/tokens/claims').then(r => r.ok ? r.json() : []).catch(() => []),
+      fetch('/api/nfts').then(r => r.ok ? r.json() : []).catch(() => []),
+    ]);
+    claims = claimsRes || [];
+    nfts = (nftsRes || []).filter(n => n.user_id === _currentUser.id);
+  } catch {}
+
+  const pendingClaims = claims.filter(c => c.status === 'pending');
+
+  container.innerHTML = `
+    <div class="dash-header">
+      <h1>Dashboard</h1>
+      <div>
+        <button class="btn btn-outline btn-sm" onclick="signOut()">Sign Out</button>
+      </div>
+    </div>
+
+    <div class="dash-stats">
+      <div class="dash-stat">
+        <div class="dash-stat-val">${(profile.token_balance || 0).toLocaleString()}</div>
+        <div class="dash-stat-label">$WWWIII Balance</div>
+      </div>
+      <div class="dash-stat">
+        <div class="dash-stat-val">${profile.tier || 'Member'}</div>
+        <div class="dash-stat-label">Tier</div>
+      </div>
+      <div class="dash-stat">
+        <div class="dash-stat-val">${nfts.length}</div>
+        <div class="dash-stat-label">NFTs</div>
+      </div>
+      <div class="dash-stat">
+        <div class="dash-stat-val">${pendingClaims.length}</div>
+        <div class="dash-stat-label">Claimable Rewards</div>
+      </div>
+    </div>
+
+    <!-- Claimable Rewards -->
+    ${pendingClaims.length > 0 ? `
+      <div class="dash-section">
+        <h2>Claimable Rewards</h2>
+        ${pendingClaims.map(c => `
+          <div class="claim-item">
+            <div>
+              <div class="amount">${c.amount.toLocaleString()} $WWWIII</div>
+              <div class="reason">${c.reason}</div>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="claimTokens('${c.id}')">Claim</button>
+          </div>
+        `).join('')}
+      </div>
+    ` : ''}
+
+    <!-- NFTs -->
+    ${nfts.length > 0 ? `
+      <div class="dash-section">
+        <h2>Your NFTs</h2>
+        <div class="nft-grid">
+          ${nfts.map(n => `
+            <div class="nft-card">
+              <img src="${n.image_url || `https://image.pollinations.ai/prompt/WWWIII+${n.tier}+membership+badge+cyberpunk?width=256&height=256&nologo=true`}" alt="">
+              <div class="nft-card-info">
+                <span class="badge badge-accent">${n.tier}</span>
+                <div style="margin-top:4px;color:var(--muted)">#${n.token_id}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    ` : ''}
+
+    <!-- Profile Settings -->
+    <div class="dash-section">
+      <h2>Profile Settings</h2>
+      <div class="dash-profile-form">
+        <div class="form-group">
+          <label class="form-label">Display Name</label>
+          <input class="form-input" id="dashName" value="${profile.display_name || ''}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Bio</label>
+          <textarea class="form-textarea" id="dashBio" rows="3">${profile.bio || ''}</textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Avatar URL</label>
+          <input class="form-input" id="dashAvatar" value="${profile.avatar_url || ''}" placeholder="https://...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Wallet Address</label>
+          <div style="display:flex;gap:12px">
+            <input class="form-input" id="dashWallet" value="${profile.wallet_address || ''}" placeholder="0x..." ${profile.wallet_address ? 'readonly' : ''}>
+            ${!profile.wallet_address ? '<button class="btn btn-outline btn-sm" onclick="linkWallet()">Link Wallet</button>' : ''}
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input class="form-input" value="${_currentUser.email || ''}" readonly style="color:var(--muted)">
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="saveProfile()">Save Changes</button>
+      </div>
+    </div>
+
+    <!-- Transaction History -->
+    <div class="dash-section">
+      <h2>Token History</h2>
+      ${claims.length > 0 ? `
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Amount</th><th>Reason</th><th>Status</th><th>Date</th></tr></thead>
+            <tbody>
+              ${claims.map(c => `
+                <tr>
+                  <td style="font-family:var(--mono);color:var(--accent2)">${c.amount.toLocaleString()}</td>
+                  <td>${c.reason}</td>
+                  <td><span class="badge ${c.status === 'claimed' ? 'badge-green' : 'badge-gold'}">${c.status}</span></td>
+                  <td style="font-family:var(--mono);font-size:12px;color:var(--muted)">${timeAgo(c.created_at)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : '<p style="color:var(--muted);font-size:14px">No token history yet.</p>'}
+    </div>
+  `;
+}
+
+async function saveProfile() {
+  const data = {
+    display_name: document.getElementById('dashName').value.trim(),
+    bio: document.getElementById('dashBio').value.trim(),
+    avatar_url: document.getElementById('dashAvatar').value.trim() || null,
+  };
+  try {
+    const res = await authFetch('/api/auth/profile', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (res.ok) {
+      showToast('Profile updated!');
+      _currentProfile = await res.json();
+    } else showToast('Failed to save', 'error');
+  } catch { showToast('Failed to save', 'error'); }
+}
+
+async function linkWallet() {
+  if (!userAccount) await connectWallet();
+  if (!userAccount) return;
+  try {
+    const res = await authFetch('/api/auth/link-wallet', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ wallet_address: userAccount }),
+    });
+    if (res.ok) {
+      showToast('Wallet linked!');
+      loadDashboard();
+    } else {
+      const err = await res.json();
+      showToast(err.error || 'Failed to link wallet', 'error');
+    }
+  } catch { showToast('Failed to link wallet', 'error'); }
+}
+
+async function claimTokens(claimId) {
+  try {
+    const res = await authFetch(`/api/tokens/claim/${claimId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    if (res.ok) {
+      const { amount } = await res.json();
+      showToast(`Claimed ${amount.toLocaleString()} $WWWIII!`);
+      loadDashboard();
+    } else showToast('Claim failed', 'error');
+  } catch { showToast('Claim failed', 'error'); }
+}
+
+document.addEventListener('DOMContentLoaded', loadDashboard);
+</script>
+</body>
+</html>

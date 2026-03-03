@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Post Editor — WWWIII Admin</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
+<script src="/shared.js" defer></script>
+<style>
+.editor-wrap{max-width:1200px;margin:0 auto;padding:100px 24px 80px}
+.editor-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+.editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:768px){.editor-grid{grid-template-columns:1fr}}
+.editor-pane{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.editor-pane-header{background:var(--surface2);padding:10px 16px;border-bottom:1px solid var(--border);
+  font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:1px}
+.editor-textarea{width:100%;min-height:500px;padding:20px;border:none;background:transparent;
+  color:var(--ink);font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;outline:none}
+.editor-preview{padding:24px;min-height:500px;overflow-y:auto}
+.editor-meta{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+@media(max-width:600px){.editor-meta{grid-template-columns:1fr}}
+.editor-controls{display:flex;gap:12px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="glow-orb"></div>
+<nav id="mainNav"></nav>
+
+<div class="editor-wrap">
+  <div class="editor-top">
+    <h1 style="font-family:var(--sans);font-size:24px;font-weight:600">Post Editor</h1>
+    <div class="editor-controls">
+      <button class="btn btn-outline btn-sm" onclick="saveDraft()">Save Draft</button>
+      <button class="btn btn-primary btn-sm" onclick="publish()">Publish</button>
+    </div>
+  </div>
+
+  <div class="editor-meta">
+    <div class="form-group" style="margin:0">
+      <label class="form-label">Title</label>
+      <input class="form-input" id="postTitle" placeholder="Post title">
+    </div>
+    <div class="form-group" style="margin:0">
+      <label class="form-label">Slug</label>
+      <input class="form-input" id="postSlug" placeholder="auto-generated-from-title">
+    </div>
+    <div class="form-group" style="margin:0">
+      <label class="form-label">Cover Image URL</label>
+      <input class="form-input" id="postCover" placeholder="https://...">
+    </div>
+    <div class="form-group" style="margin:0">
+      <label class="form-label">Tags (comma-separated)</label>
+      <input class="form-input" id="postTags" placeholder="architecture, research, update">
+    </div>
+    <div class="form-group" style="margin:0">
+      <label class="form-checkbox">
+        <input type="checkbox" id="postGated"> Token gated content
+      </label>
+    </div>
+    <div class="form-group" style="margin:0">
+      <label class="form-label">Min Tier (if gated)</label>
+      <select class="form-select" id="postTier">
+        <option value="supporter">Supporter</option>
+        <option value="builder">Builder</option>
+        <option value="architect">Architect</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Excerpt</label>
+    <input class="form-input" id="postExcerpt" placeholder="Brief description for cards and SEO">
+  </div>
+
+  <div class="editor-grid">
+    <div class="editor-pane">
+      <div class="editor-pane-header">Markdown</div>
+      <textarea class="editor-textarea" id="postContent" placeholder="Write your post in Markdown..."></textarea>
+    </div>
+    <div class="editor-pane">
+      <div class="editor-pane-header">Preview</div>
+      <div class="editor-preview md-content" id="postPreview"></div>
+    </div>
+  </div>
+</div>
+
+<footer id="mainFooter"></footer>
+
+<script>
+// Live preview
+const contentEl = document.getElementById('postContent');
+const previewEl = document.getElementById('postPreview');
+contentEl.addEventListener('input', () => {
+  if (typeof marked !== 'undefined') {
+    previewEl.innerHTML = marked.parse(contentEl.value);
+  }
+});
+
+// Auto-generate slug from title
+document.getElementById('postTitle').addEventListener('input', function() {
+  const slug = this.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  document.getElementById('postSlug').value = slug;
+});
+
+async function savePost(status) {
+  const data = {
+    title: document.getElementById('postTitle').value,
+    slug: document.getElementById('postSlug').value,
+    excerpt: document.getElementById('postExcerpt').value,
+    content: contentEl.value,
+    cover_image_url: document.getElementById('postCover').value || null,
+    tags: document.getElementById('postTags').value.split(',').map(t => t.trim()).filter(Boolean),
+    is_token_gated: document.getElementById('postGated').checked,
+    min_tier: document.getElementById('postTier').value,
+    status,
+  };
+
+  if (!data.title || !data.content) return showToast('Title and content required', 'error');
+
+  try {
+    const res = await authFetch('/api/posts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (res.ok) {
+      const post = await res.json();
+      showToast(status === 'published' ? 'Published!' : 'Draft saved');
+      if (status === 'published') {
+        setTimeout(() => window.location.href = '/post.html?slug=' + post.slug, 1000);
+      }
+    } else {
+      const err = await res.json();
+      showToast(err.error || 'Failed to save', 'error');
+    }
+  } catch { showToast('Failed to save post', 'error'); }
+}
+
+function saveDraft() { savePost('draft'); }
+function publish() { savePost('published'); }
+</script>
+</body>
+</html>

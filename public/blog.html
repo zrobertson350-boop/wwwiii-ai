@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blog — WWWIII</title>
+<meta name="description" content="WWWIII Blog — updates on the first publicly built AI. Architecture decisions, research papers, community updates.">
+<meta property="og:title" content="WWWIII Blog">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+<script src="/shared.js" defer></script>
+<style>
+.blog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:24px;margin-top:32px}
+.blog-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color .3s,transform .3s}
+.blog-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.blog-card-img{width:100%;height:200px;object-fit:cover;background:var(--surface2)}
+.blog-card-body{padding:24px}
+.blog-card-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.blog-card h3{font-family:var(--sans);font-size:18px;font-weight:600;margin-bottom:8px;line-height:1.3}
+.blog-card h3 a{color:var(--ink)}
+.blog-card p{color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:12px}
+.blog-card-meta{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);font-family:var(--mono)}
+.blog-gated{position:absolute;top:12px;right:12px}
+.blog-card-wrap{position:relative}
+.tag-filter{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.tag-btn{padding:6px 14px;border:1px solid var(--border);border-radius:20px;background:transparent;
+  color:var(--muted);font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .2s;letter-spacing:1px}
+.tag-btn:hover,.tag-btn.active{border-color:var(--accent);color:var(--accent2);background:rgba(108,92,231,.1)}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="glow-orb"></div>
+<nav id="mainNav"></nav>
+
+<div class="page-header">
+  <div class="wrap">
+    <div class="section-tag">Blog</div>
+    <div class="section-title">From the Front Lines</div>
+    <div class="section-desc">Architecture decisions, research updates, and community news from the WWWIII project.</div>
+    <div class="tag-filter" id="tagFilter">
+      <button class="tag-btn active" onclick="filterTag('all')">All</button>
+      <button class="tag-btn" onclick="filterTag('architecture')">Architecture</button>
+      <button class="tag-btn" onclick="filterTag('research')">Research</button>
+      <button class="tag-btn" onclick="filterTag('community')">Community</button>
+      <button class="tag-btn" onclick="filterTag('governance')">Governance</button>
+      <button class="tag-btn" onclick="filterTag('update')">Updates</button>
+    </div>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <div class="blog-grid" id="blogGrid">
+      <div class="spinner" style="grid-column:1/-1;padding:60px 0"></div>
+    </div>
+    <div class="pagination" id="blogPagination"></div>
+  </div>
+</section>
+
+<footer id="mainFooter"></footer>
+
+<script>
+let currentTag = 'all';
+let currentPage = 1;
+
+async function loadPosts(page = 1, tag = 'all') {
+  currentPage = page;
+  currentTag = tag;
+  const grid = document.getElementById('blogGrid');
+  grid.innerHTML = '<div class="spinner" style="grid-column:1/-1;padding:60px 0"></div>';
+
+  try {
+    let url = `/api/posts?page=${page}&limit=12`;
+    if (tag !== 'all') url += `&tag=${tag}`;
+    const res = await fetch(url);
+    const { posts, total } = await res.json();
+
+    if (!posts || posts.length === 0) {
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+        <div class="icon">&#128220;</div>
+        <h3>No posts yet</h3>
+        <p>Check back soon for updates from the WWWIII project.</p>
+      </div>`;
+      return;
+    }
+
+    grid.innerHTML = posts.map(p => `
+      <div class="blog-card-wrap">
+        <a href="/post.html?slug=${p.slug}" class="blog-card" style="display:block;color:inherit">
+          ${p.cover_image_url ? `<img class="blog-card-img" src="${p.cover_image_url}" alt="">` : '<div class="blog-card-img"></div>'}
+          <div class="blog-card-body">
+            <div class="blog-card-tags">
+              ${(p.tags || []).map(t => `<span class="badge badge-accent">${t}</span>`).join('')}
+            </div>
+            <h3>${p.title}</h3>
+            <p>${p.excerpt || ''}</p>
+            <div class="blog-card-meta">
+              <span>${new Date(p.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+            </div>
+          </div>
+        </a>
+        ${p.is_token_gated ? '<span class="blog-gated badge badge-gold">Token Gated</span>' : ''}
+      </div>
+    `).join('');
+
+    // Pagination
+    const totalPages = Math.ceil(total / 12);
+    const pag = document.getElementById('blogPagination');
+    if (totalPages > 1) {
+      let html = '';
+      for (let i = 1; i <= totalPages; i++) {
+        html += `<button class="${i === page ? 'active' : ''}" onclick="loadPosts(${i},'${tag}')">${i}</button>`;
+      }
+      pag.innerHTML = html;
+    } else {
+      pag.innerHTML = '';
+    }
+  } catch (err) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="icon">&#128220;</div>
+      <h3>No posts yet</h3>
+      <p>The blog is coming soon. Check back for architecture updates and community news.</p>
+    </div>`;
+  }
+}
+
+function filterTag(tag) {
+  document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  loadPosts(1, tag);
+}
+
+document.addEventListener('DOMContentLoaded', () => loadPosts());
+</script>
+</body>
+</html>

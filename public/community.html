@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Community — WWWIII</title>
+<meta name="description" content="WWWIII Community — members, leaderboard, and discussions. Join the movement to build the first publicly funded AI.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+<script src="/shared.js" defer></script>
+<style>
+.community-tabs{max-width:500px;margin:0 auto 32px}
+.panel{display:none}.panel.active{display:block}
+.member-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.member-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;text-align:center;transition:border-color .3s}
+.member-card:hover{border-color:var(--accent)}
+.member-avatar{width:56px;height:56px;border-radius:50%;border:2px solid var(--border);margin:0 auto 12px;
+  background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--muted)}
+.member-card h4{font-family:var(--sans);font-size:15px;font-weight:600;margin-bottom:4px}
+.member-card p{color:var(--muted);font-size:12px}
+.discussion-list{display:flex;flex-direction:column;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.discussion-item{display:flex;gap:16px;padding:20px 24px;background:var(--surface);transition:background .2s;cursor:pointer}
+.discussion-item:hover{background:var(--surface2)}
+.discussion-body{flex:1;min-width:0}
+.discussion-body h4{font-family:var(--sans);font-size:15px;font-weight:600;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.discussion-body h4 a{color:var(--ink)}
+.discussion-meta{display:flex;gap:12px;font-size:12px;color:var(--muted);font-family:var(--mono)}
+.discussion-stats{display:flex;gap:16px;align-items:center;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.cat-filter{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+.cat-btn{padding:6px 14px;border:1px solid var(--border);border-radius:20px;background:transparent;
+  color:var(--muted);font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .2s}
+.cat-btn:hover,.cat-btn.active{border-color:var(--accent);color:var(--accent2);background:rgba(108,92,231,.1)}
+.new-discussion{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:24px}
+.new-discussion h3{font-family:var(--sans);font-size:16px;font-weight:600;margin-bottom:16px}
+.lb-rank{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--accent2);min-width:36px}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="glow-orb"></div>
+<nav id="mainNav"></nav>
+
+<div class="page-header">
+  <div class="wrap">
+    <div class="section-tag">Community</div>
+    <div class="section-title">Built by Everyone</div>
+    <div class="section-desc">Members, contributors, and discussions shaping the first publicly funded AI.</div>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <div class="community-tabs tabs">
+      <button class="tab active" onclick="switchPanel('discussions')">Discussions</button>
+      <button class="tab" onclick="switchPanel('members')">Members</button>
+      <button class="tab" onclick="switchPanel('leaderboard')">Leaderboard</button>
+    </div>
+
+    <!-- Discussions Panel -->
+    <div class="panel active" id="panel-discussions">
+      <div class="new-discussion" id="newDiscussionForm" style="display:none">
+        <h3>Start a Discussion</h3>
+        <div class="form-group">
+          <input class="form-input" id="discTitle" placeholder="Discussion title">
+        </div>
+        <div class="form-group">
+          <textarea class="form-textarea" id="discContent" placeholder="What's on your mind?" rows="3"></textarea>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center">
+          <select class="form-select" id="discCategory" style="max-width:200px">
+            <option value="general">General</option>
+            <option value="architecture">Architecture</option>
+            <option value="governance">Governance</option>
+            <option value="research">Research</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="postDiscussion()">Post</button>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px">
+        <div class="cat-filter">
+          <button class="cat-btn active" onclick="filterCat('all')">All</button>
+          <button class="cat-btn" onclick="filterCat('general')">General</button>
+          <button class="cat-btn" onclick="filterCat('architecture')">Architecture</button>
+          <button class="cat-btn" onclick="filterCat('governance')">Governance</button>
+          <button class="cat-btn" onclick="filterCat('research')">Research</button>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="toggleNewDiscussion()">New Discussion</button>
+      </div>
+      <div id="discussionList"><div class="spinner" style="padding:40px 0"></div></div>
+    </div>
+
+    <!-- Members Panel -->
+    <div class="panel" id="panel-members">
+      <div class="member-grid" id="memberGrid"><div class="spinner" style="grid-column:1/-1;padding:40px 0"></div></div>
+    </div>
+
+    <!-- Leaderboard Panel -->
+    <div class="panel" id="panel-leaderboard">
+      <div class="table-wrap">
+        <table id="lbTable">
+          <thead><tr><th>#</th><th>Member</th><th>Tier</th><th>Tokens Earned</th></tr></thead>
+          <tbody id="lbBody"><tr><td colspan="4" style="text-align:center;padding:40px"><div class="spinner"></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer id="mainFooter"></footer>
+
+<script>
+let currentCat = 'all';
+
+function switchPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  event.target.classList.add('active');
+  if (name === 'members') loadMembers();
+  if (name === 'leaderboard') loadLeaderboard();
+  if (name === 'discussions') loadDiscussions();
+}
+
+async function loadDiscussions(cat = 'all') {
+  currentCat = cat;
+  const el = document.getElementById('discussionList');
+  el.innerHTML = '<div class="spinner" style="padding:40px 0"></div>';
+  try {
+    let url = '/api/discussions?limit=30';
+    if (cat !== 'all') url += `&category=${cat}`;
+    const res = await fetch(url);
+    const { discussions } = await res.json();
+    if (!discussions?.length) {
+      el.innerHTML = '<div class="empty-state"><div class="icon">&#128172;</div><h3>No discussions yet</h3><p>Start the conversation!</p></div>';
+      return;
+    }
+    el.innerHTML = '<div class="discussion-list">' + discussions.map(d => `
+      <div class="discussion-item" onclick="window.location='/discussion.html?id=${d.id}'">
+        <div class="upvote-btn" onclick="event.stopPropagation();upvoteDiscussion('${d.id}',this)">
+          <span class="arrow">&#9650;</span>
+          <span class="count">${d.upvotes || 0}</span>
+        </div>
+        <div class="discussion-body">
+          <h4><a href="/discussion.html?id=${d.id}">${d.title}</a></h4>
+          <div class="discussion-meta">
+            <span>${d.author?.display_name || 'Anonymous'}</span>
+            <span class="badge badge-accent">${d.category}</span>
+            <span>${timeAgo(d.created_at)}</span>
+          </div>
+        </div>
+        <div class="discussion-stats">
+          <span>${d.reply_count || 0} replies</span>
+        </div>
+      </div>
+    `).join('') + '</div>';
+  } catch {
+    el.innerHTML = '<div class="empty-state"><div class="icon">&#128172;</div><h3>No discussions yet</h3><p>Be the first to start a conversation.</p></div>';
+  }
+}
+
+async function loadMembers() {
+  const el = document.getElementById('memberGrid');
+  try {
+    const res = await fetch('/api/community/members');
+    const { members } = await res.json();
+    if (!members?.length) { el.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><h3>No members yet</h3></div>'; return; }
+    el.innerHTML = members.map(m => `
+      <a href="/profile.html?id=${m.id}" class="member-card" style="color:inherit">
+        <div class="member-avatar">${m.avatar_url ? `<img src="${m.avatar_url}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : m.display_name?.[0]?.toUpperCase() || '?'}</div>
+        <h4>${m.display_name || 'Anonymous'}</h4>
+        <p>${m.tier && m.tier !== 'none' ? `<span class="badge badge-accent">${m.tier}</span>` : ''}</p>
+        ${m.bio ? `<p style="margin-top:8px;font-size:12px;color:var(--muted)">${m.bio.slice(0,80)}</p>` : ''}
+      </a>
+    `).join('');
+  } catch {
+    el.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><h3>No members yet</h3><p>Be the first to join!</p></div>';
+  }
+}
+
+async function loadLeaderboard() {
+  try {
+    const res = await fetch('/api/community/leaderboard');
+    const data = await res.json();
+    const body = document.getElementById('lbBody');
+    if (!data?.length) { body.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--muted)">No data yet</td></tr>'; return; }
+    body.innerHTML = data.map((m, i) => `
+      <tr>
+        <td><span class="lb-rank">${i + 1}</span></td>
+        <td><a href="/profile.html?id=${m.id}">${m.display_name || 'Anonymous'}</a></td>
+        <td><span class="badge badge-accent">${m.tier || 'member'}</span></td>
+        <td style="font-family:var(--mono);color:var(--accent2)">${(m.token_balance || m.total_tokens || 0).toLocaleString()}</td>
+      </tr>
+    `).join('');
+  } catch {
+    document.getElementById('lbBody').innerHTML = '<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--muted)">Leaderboard coming soon</td></tr>';
+  }
+}
+
+function filterCat(cat) {
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  loadDiscussions(cat);
+}
+
+function toggleNewDiscussion() {
+  const form = document.getElementById('newDiscussionForm');
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+async function postDiscussion() {
+  const title = document.getElementById('discTitle').value.trim();
+  const content = document.getElementById('discContent').value.trim();
+  const category = document.getElementById('discCategory').value;
+  if (!title || !content) return showToast('Title and content required', 'error');
+  try {
+    const res = await authFetch('/api/discussions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, content, category }),
+    });
+    if (res.ok) {
+      showToast('Discussion posted!');
+      document.getElementById('discTitle').value = '';
+      document.getElementById('discContent').value = '';
+      document.getElementById('newDiscussionForm').style.display = 'none';
+      loadDiscussions(currentCat);
+    } else {
+      const err = await res.json();
+      showToast(err.error || 'Must be signed in', 'error');
+    }
+  } catch { showToast('Failed to post', 'error'); }
+}
+
+async function upvoteDiscussion(id, btn) {
+  try {
+    const res = await authFetch('/api/discussions/upvote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target_type: 'discussion', target_id: id }),
+    });
+    if (res.ok) {
+      const { voted, upvotes } = await res.json();
+      btn.classList.toggle('voted', voted);
+      btn.querySelector('.count').textContent = upvotes;
+    } else {
+      showToast('Sign in to vote', 'error');
+    }
+  } catch {}
+}
+
+document.addEventListener('DOMContentLoaded', () => loadDiscussions());
+</script>
+</body>
+</html>

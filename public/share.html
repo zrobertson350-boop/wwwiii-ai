@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spread the Word — WWWIII</title>
+<meta name="description" content="Help spread the word about WWWIII. Share on social media, embed funding widgets, and generate referral links.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+<script src="/shared.js" defer></script>
+<style>
+.share-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:24px;margin-top:32px}
+.share-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:32px}
+.share-card h3{font-family:var(--sans);font-size:18px;font-weight:600;margin-bottom:12px}
+.share-card p{color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:16px}
+.share-msg{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px;
+  font-size:13px;color:var(--ink);line-height:1.6;margin-bottom:12px;position:relative}
+.copy-btn{position:absolute;top:8px;right:8px;padding:4px 10px;border:1px solid var(--border);
+  border-radius:4px;background:transparent;color:var(--muted);font-family:var(--mono);font-size:10px;
+  cursor:pointer;transition:all .2s}
+.copy-btn:hover{border-color:var(--accent);color:var(--accent2)}
+.share-actions{display:flex;gap:8px;flex-wrap:wrap}
+.share-actions a,.share-actions button{padding:8px 16px;border:1px solid var(--border);border-radius:6px;
+  background:transparent;color:var(--muted);font-family:var(--mono);font-size:11px;cursor:pointer;
+  transition:all .2s;text-decoration:none}
+.share-actions a:hover,.share-actions button:hover{border-color:var(--accent);color:var(--accent2)}
+.embed-code{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px;
+  font-family:var(--mono);font-size:12px;color:var(--accent2);overflow-x:auto;margin-top:12px;word-break:break-all}
+.referral-box{background:var(--bg);border:1px solid var(--accent);border-radius:8px;padding:20px;text-align:center;margin-top:16px}
+.referral-box code{font-family:var(--mono);font-size:14px;color:var(--accent2);letter-spacing:.5px}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="glow-orb"></div>
+<nav id="mainNav"></nav>
+
+<div class="page-header">
+  <div class="wrap">
+    <div class="section-tag">Share</div>
+    <div class="section-title">Spread the Word</div>
+    <div class="section-desc">Help build the movement. Every share brings us closer to publicly funded AI.</div>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <div class="share-grid">
+      <!-- Twitter / X -->
+      <div class="share-card">
+        <h3>Share on X</h3>
+        <p>Pre-written tweet — edit or post as-is.</p>
+        <div class="share-msg" id="xMsg">
+          The first publicly funded AI is being built right now. No corporate gatekeepers. Open weights. Open governance. $WWWIII
+
+https://wwwiii.ai
+          <button class="copy-btn" onclick="copyMsg('xMsg')">Copy</button>
+        </div>
+        <div class="share-actions">
+          <a href="https://twitter.com/intent/tweet?text=The%20first%20publicly%20funded%20AI%20is%20being%20built%20right%20now.%20No%20corporate%20gatekeepers.%20Open%20weights.%20Open%20governance.%20%24WWWIII%0A%0Ahttps%3A%2F%2Fwwwiii.ai" target="_blank">Post on X</a>
+        </div>
+      </div>
+
+      <!-- Reddit -->
+      <div class="share-card">
+        <h3>Share on Reddit</h3>
+        <p>Post to relevant subreddits — r/artificial, r/MachineLearning, r/CryptoCurrency</p>
+        <div class="share-msg" id="redditMsg">
+          WWWIII — the first publicly funded path to AGI. 1B tokens, open weights, Apache 2.0, community governance. Not a corporate project. A movement.
+
+https://wwwiii.ai
+          <button class="copy-btn" onclick="copyMsg('redditMsg')">Copy</button>
+        </div>
+        <div class="share-actions">
+          <a href="https://reddit.com/submit?url=https://wwwiii.ai&title=WWWIII%20%E2%80%94%20The%20First%20Publicly%20Funded%20AI" target="_blank">Post on Reddit</a>
+        </div>
+      </div>
+
+      <!-- Discord -->
+      <div class="share-card">
+        <h3>Share on Discord</h3>
+        <p>Drop this in AI, crypto, and tech Discord servers.</p>
+        <div class="share-msg" id="discordMsg">
+          Anyone following WWWIII? It's a publicly funded AI project — open weights, on-chain governance, the whole deal. They're building a 70B+ model funded entirely by the community. https://wwwiii.ai
+          <button class="copy-btn" onclick="copyMsg('discordMsg')">Copy</button>
+        </div>
+      </div>
+
+      <!-- Embed Widget -->
+      <div class="share-card">
+        <h3>Embed Funding Widget</h3>
+        <p>Add a WWWIII funding tracker to your website or blog.</p>
+        <div class="embed-code" id="embedCode">&lt;iframe src="https://wwwiii.ai/#fund" width="400" height="500" frameborder="0" style="border-radius:12px;border:1px solid #1a1a2e"&gt;&lt;/iframe&gt;</div>
+        <div class="share-actions" style="margin-top:12px">
+          <button onclick="copyEl('embedCode')">Copy Embed Code</button>
+        </div>
+      </div>
+
+      <!-- Referral Link -->
+      <div class="share-card">
+        <h3>Referral Link</h3>
+        <p>Get a unique referral link. When someone joins through your link, both of you earn bonus tokens.</p>
+        <div class="referral-box" id="referralBox">
+          <p style="color:var(--muted);font-size:13px;margin-bottom:12px">Sign in to generate your referral link</p>
+          <a href="/join.html" class="btn btn-primary btn-sm">Join to Get Link</a>
+        </div>
+      </div>
+
+      <!-- Email -->
+      <div class="share-card">
+        <h3>Email a Friend</h3>
+        <p>Know someone who cares about open AI? Send them this.</p>
+        <div class="share-actions">
+          <a href="mailto:?subject=WWWIII%20%E2%80%94%20The%20First%20Publicly%20Funded%20AI&body=Check%20out%20WWWIII%20%E2%80%94%20a%20publicly%20funded%2C%20community-governed%20AI%20project%20building%20the%20first%20open%20path%20to%20AGI.%0A%0Ahttps%3A%2F%2Fwwwiii.ai">Open Email</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer id="mainFooter"></footer>
+
+<script>
+function copyMsg(id) {
+  const el = document.getElementById(id);
+  const text = el.innerText.replace('Copy', '').trim();
+  navigator.clipboard.writeText(text).then(() => showToast('Copied!'));
+}
+function copyEl(id) {
+  const el = document.getElementById(id);
+  navigator.clipboard.writeText(el.innerText).then(() => showToast('Copied!'));
+}
+
+// Generate referral link if logged in
+document.addEventListener('DOMContentLoaded', async () => {
+  await new Promise(r => setTimeout(r, 500));
+  if (_currentUser) {
+    const ref = btoa(_currentUser.id).replace(/=/g, '').slice(0, 12);
+    document.getElementById('referralBox').innerHTML = `
+      <code>https://wwwiii.ai/?ref=${ref}</code>
+      <br><br>
+      <button class="btn btn-primary btn-sm" onclick="navigator.clipboard.writeText('https://wwwiii.ai/?ref=${ref}');showToast('Copied!')">Copy Link</button>
+    `;
+  }
+});
+</script>
+</body>
+</html>

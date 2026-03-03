@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Art Generator — WWWIII</title>
+<meta name="description" content="Generate AI art with WWWIII. Create cyberpunk, abstract, and photorealistic art powered by community AI.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+<script src="/shared.js" defer></script>
+<style>
+.art-generator{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px;max-width:640px;margin:0 auto 48px}
+.art-generator h2{font-family:var(--sans);font-size:22px;font-weight:600;margin-bottom:16px;text-align:center}
+.style-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px}
+@media(max-width:600px){.style-grid{grid-template-columns:repeat(2,1fr)}}
+.style-btn{padding:10px;border:1px solid var(--border);border-radius:8px;background:transparent;
+  color:var(--muted);font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .2s;text-align:center}
+.style-btn:hover,.style-btn.active{border-color:var(--accent);color:var(--accent2);background:rgba(108,92,231,.1)}
+.art-result{margin-top:24px;text-align:center;display:none}
+.art-result img{max-width:100%;border-radius:12px;border:1px solid var(--border)}
+.art-result-actions{display:flex;gap:12px;justify-content:center;margin-top:16px}
+.gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.gallery-item{border-radius:12px;overflow:hidden;border:1px solid var(--border);transition:border-color .3s,transform .3s;cursor:pointer;position:relative}
+.gallery-item:hover{border-color:var(--accent);transform:translateY(-2px)}
+.gallery-item img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.gallery-item-info{position:absolute;bottom:0;left:0;right:0;padding:12px;
+  background:linear-gradient(transparent,rgba(5,5,8,.9));color:var(--ink);font-size:12px}
+.gallery-item-info .prompt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px}
+.gallery-item-info .creator{color:var(--muted);font-family:var(--mono);font-size:10px}
+.generating{display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 0}
+.generating p{color:var(--muted);font-size:13px;font-family:var(--mono)}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="glow-orb"></div>
+<nav id="mainNav"></nav>
+
+<div class="page-header">
+  <div class="wrap">
+    <div class="section-tag">AI Art</div>
+    <div class="section-title">Create with WWWIII</div>
+    <div class="section-desc">Generate AI art powered by WWWIII's prompt engine. Free for all members.</div>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <div class="art-generator">
+      <h2>Generate Art</h2>
+      <div class="form-group">
+        <label class="form-label">Prompt</label>
+        <textarea class="form-textarea" id="artPrompt" placeholder="Describe the image you want to create..." rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Style</label>
+        <div class="style-grid" id="styleGrid">
+          <button class="style-btn active" onclick="selectStyle('cyberpunk',this)">Cyberpunk</button>
+          <button class="style-btn" onclick="selectStyle('abstract',this)">Abstract</button>
+          <button class="style-btn" onclick="selectStyle('photorealistic',this)">Photo</button>
+          <button class="style-btn" onclick="selectStyle('anime',this)">Anime</button>
+          <button class="style-btn" onclick="selectStyle('oil-painting',this)">Oil Paint</button>
+          <button class="style-btn" onclick="selectStyle('digital-art',this)">Digital</button>
+          <button class="style-btn" onclick="selectStyle('vaporwave',this)">Vaporwave</button>
+          <button class="style-btn" onclick="selectStyle('surreal',this)">Surreal</button>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="width:100%" id="generateBtn" onclick="generateArt()">Generate</button>
+
+      <div class="art-result" id="artResult">
+        <img id="artImage" src="" alt="Generated art">
+        <div class="art-result-actions">
+          <a id="artDownload" href="" download="wwwiii-art.png" class="btn btn-outline btn-sm">Download</a>
+          <button class="btn btn-primary btn-sm" onclick="showToast('NFT minting coming soon!')">Mint as NFT</button>
+        </div>
+      </div>
+
+      <div class="generating" id="artGenerating" style="display:none">
+        <div class="spinner"></div>
+        <p>Generating your artwork...</p>
+      </div>
+    </div>
+
+    <div class="section-tag">Gallery</div>
+    <div class="section-title" style="margin-bottom:24px">Community Creations</div>
+    <div class="gallery-grid" id="galleryGrid">
+      <div class="spinner" style="grid-column:1/-1;padding:40px 0"></div>
+    </div>
+  </div>
+</section>
+
+<footer id="mainFooter"></footer>
+
+<script>
+let selectedStyle = 'cyberpunk';
+
+function selectStyle(style, btn) {
+  selectedStyle = style;
+  document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+async function generateArt() {
+  const prompt = document.getElementById('artPrompt').value.trim();
+  if (!prompt) return showToast('Enter a prompt', 'error');
+
+  const btn = document.getElementById('generateBtn');
+  const result = document.getElementById('artResult');
+  const generating = document.getElementById('artGenerating');
+
+  btn.disabled = true;
+  result.style.display = 'none';
+  generating.style.display = 'flex';
+
+  try {
+    const res = await authFetch('/api/art/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, style: selectedStyle }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      showToast(err.error || 'Sign in to generate art', 'error');
+      generating.style.display = 'none';
+      btn.disabled = false;
+      return;
+    }
+
+    const data = await res.json();
+
+    // Preload image
+    const img = document.getElementById('artImage');
+    img.onload = () => {
+      generating.style.display = 'none';
+      result.style.display = 'block';
+      btn.disabled = false;
+    };
+    img.onerror = () => {
+      // Pollinations can be slow, retry with direct URL
+      setTimeout(() => { img.src = data.image_url + '&t=' + Date.now(); }, 2000);
+    };
+    img.src = data.image_url;
+    document.getElementById('artDownload').href = data.image_url;
+  } catch {
+    showToast('Generation failed', 'error');
+    generating.style.display = 'none';
+    btn.disabled = false;
+  }
+}
+
+async function loadGallery() {
+  const grid = document.getElementById('galleryGrid');
+  try {
+    const res = await fetch('/api/art/gallery?limit=24');
+    const { artworks } = await res.json();
+
+    if (!artworks?.length) {
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+        <div class="icon">&#127912;</div>
+        <h3>Gallery is empty</h3>
+        <p>Be the first to generate AI art!</p>
+      </div>`;
+      return;
+    }
+
+    grid.innerHTML = artworks.map(a => `
+      <div class="gallery-item" onclick="window.open('${a.image_url}','_blank')">
+        <img src="${a.image_url}" alt="${a.prompt}" loading="lazy">
+        <div class="gallery-item-info">
+          <div class="prompt">${a.prompt}</div>
+          <div class="creator">${a.creator || 'Anonymous'} &middot; ${a.style}</div>
+        </div>
+      </div>
+    `).join('');
+  } catch {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="icon">&#127912;</div>
+      <h3>Gallery coming soon</h3>
+      <p>Generate art above to populate the gallery.</p>
+    </div>`;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', loadGallery);
+</script>
+</body>
+</html>

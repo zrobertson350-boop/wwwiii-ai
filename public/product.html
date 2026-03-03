@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product — WWWIII</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+<script src="/shared.js" defer></script>
+<style>
+.product-wrap{max-width:800px;margin:0 auto;padding:120px 24px 80px}
+.product-detail{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+@media(max-width:768px){.product-detail{grid-template-columns:1fr}}
+.product-detail-img{width:100%;border-radius:12px;background:var(--surface);aspect-ratio:1;object-fit:cover}
+.product-detail-info h1{font-family:var(--sans);font-size:28px;font-weight:700;margin-bottom:8px}
+.product-detail-type{font-family:var(--mono);font-size:11px;color:var(--accent2);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+.product-detail-desc{color:var(--muted);font-size:14px;line-height:1.7;margin-bottom:24px}
+.product-detail-price{font-family:var(--sans);font-size:32px;font-weight:700;margin-bottom:4px}
+.product-detail-eth{font-family:var(--mono);font-size:14px;color:var(--muted);margin-bottom:16px}
+.buy-options{display:flex;flex-direction:column;gap:12px;margin-top:24px}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="glow-orb"></div>
+<nav id="mainNav"></nav>
+
+<div class="product-wrap" id="productContent">
+  <div class="spinner" style="padding:80px 0"></div>
+</div>
+
+<footer id="mainFooter"></footer>
+
+<script>
+async function loadProduct() {
+  const slug = new URLSearchParams(window.location.search).get('slug');
+  if (!slug) return window.location.href = '/store.html';
+  const container = document.getElementById('productContent');
+
+  try {
+    const res = await fetch(`/api/store/products/${slug}`);
+    if (!res.ok) throw new Error();
+    const p = await res.json();
+
+    document.title = p.name + ' — WWWIII Store';
+
+    container.innerHTML = `
+      <div style="margin-bottom:16px"><a href="/store.html" style="font-size:13px;color:var(--muted)">&larr; Back to Store</a></div>
+      <div class="product-detail">
+        <div>
+          ${p.cover_image_url ? `<img class="product-detail-img" src="${p.cover_image_url}" alt="">` : '<div class="product-detail-img"></div>'}
+        </div>
+        <div class="product-detail-info">
+          <div class="product-detail-type">${p.type}</div>
+          <h1>${p.name}</h1>
+          <div class="product-detail-desc">${p.description || ''}</div>
+          <div class="product-detail-price">$${p.price_usd}</div>
+          ${p.price_eth ? `<div class="product-detail-eth">${p.price_eth} ETH</div>` : ''}
+          ${p.token_discount_pct ? `<p style="color:var(--gold);font-size:13px;font-family:var(--mono)">$WWWIII holders save ${p.token_discount_pct}%</p>` : ''}
+          ${p.sold_count ? `<p style="color:var(--muted);font-size:12px;font-family:var(--mono);margin-top:8px">${p.sold_count} sold</p>` : ''}
+          <div class="buy-options">
+            <button class="btn btn-primary" style="width:100%" onclick="buyWithStripe('${p.id}')">Buy with Card — $${p.price_usd}</button>
+            ${p.price_eth ? `<button class="btn btn-outline" style="width:100%" onclick="buyWithETH('${p.price_eth}')">Buy with ETH — ${p.price_eth} ETH</button>` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  } catch {
+    container.innerHTML = '<div class="empty-state"><h3>Product not found</h3><p><a href="/store.html">Back to store</a></p></div>';
+  }
+}
+
+async function buyWithStripe(productId) {
+  try {
+    const res = await authFetch('/api/store/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product_id: productId }),
+    });
+    if (res.ok) {
+      const { url } = await res.json();
+      window.location.href = url;
+    } else {
+      const err = await res.json();
+      showToast(err.error || 'Sign in to purchase', 'error');
+    }
+  } catch { showToast('Checkout failed', 'error'); }
+}
+
+async function buyWithETH(ethAmount) {
+  if (!userAccount) await connectWallet();
+  if (!userAccount) return;
+  try {
+    const weiHex = '0x' + BigInt(Math.round(parseFloat(ethAmount) * 1e18)).toString(16);
+    const txHash = await window.ethereum.request({
+      method: 'eth_sendTransaction',
+      params: [{ from: userAccount, to: '0xCD26a62fc178129F4b24759c329e0c1867d4e613', value: weiHex }],
+    });
+    showToast('Transaction sent! Tx: ' + txHash.slice(0, 10) + '...');
+  } catch (err) {
+    if (err.code !== 4001) showToast('Transaction failed', 'error');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', loadProduct);
+</script>
+</body>
+</html>

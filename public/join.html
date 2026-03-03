@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Join the Movement — WWWIII</title>
+<meta name="description" content="Join WWWIII — the first publicly funded AI. Create your account, link your wallet, and help build the future.">
+<meta property="og:title" content="Join WWWIII — The People's AI">
+<meta property="og:description" content="Create your account and join the movement to build the first publicly funded AI.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+<script src="/shared.js" defer></script>
+<style>
+.join-wrap{max-width:480px;margin:0 auto;padding:140px 24px 80px}
+.join-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:48px 40px}
+.join-title{font-family:var(--sans);font-size:28px;font-weight:700;text-align:center;margin-bottom:8px}
+.join-sub{color:var(--muted);font-size:14px;text-align:center;margin-bottom:32px;line-height:1.6}
+.join-divider{display:flex;align-items:center;gap:12px;margin:24px 0;color:var(--muted);font-size:12px;font-family:var(--mono)}
+.join-divider::before,.join-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.join-success{display:none;text-align:center;padding:40px 0}
+.join-success .icon{font-size:48px;margin-bottom:16px}
+.join-success h2{font-family:var(--sans);font-size:24px;margin-bottom:8px}
+.join-success p{color:var(--muted);font-size:14px;margin-bottom:24px}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="glow-orb"></div>
+<nav id="mainNav"></nav>
+
+<div class="join-wrap">
+  <div class="join-card" id="joinForm">
+    <div class="join-title">Join the Movement</div>
+    <div class="join-sub">Create your WWWIII account. Fund the build, vote on architecture, earn tokens for contributions.</div>
+
+    <div class="form-group">
+      <label class="form-label" for="joinEmail">Email</label>
+      <input class="form-input" type="email" id="joinEmail" placeholder="you@example.com" required>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="joinPassword">Password</label>
+      <input class="form-input" type="password" id="joinPassword" placeholder="Min 6 characters" minlength="6" required>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="joinName">Display Name</label>
+      <input class="form-input" type="text" id="joinName" placeholder="How others will see you">
+    </div>
+    <div class="form-group">
+      <label class="form-checkbox">
+        <input type="checkbox" id="joinNewsletter" checked>
+        Subscribe to WWWIII updates (architecture votes, releases, community news)
+      </label>
+    </div>
+
+    <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="handleJoin()">Create Account</button>
+
+    <div class="join-divider">or</div>
+
+    <button class="btn btn-outline" style="width:100%" onclick="handleWalletJoin()">
+      Join with Wallet
+    </button>
+
+    <p style="text-align:center;margin-top:24px;font-size:13px;color:var(--muted)">
+      Already have an account? <a href="#" onclick="showLogin()">Sign in</a>
+    </p>
+  </div>
+
+  <!-- Login form (hidden by default) -->
+  <div class="join-card" id="loginForm" style="display:none">
+    <div class="join-title">Welcome Back</div>
+    <div class="join-sub">Sign in to your WWWIII account.</div>
+
+    <div class="form-group">
+      <label class="form-label" for="loginEmail">Email</label>
+      <input class="form-input" type="email" id="loginEmail" placeholder="you@example.com" required>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="loginPassword">Password</label>
+      <input class="form-input" type="password" id="loginPassword" placeholder="Your password" required>
+    </div>
+
+    <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="handleLogin()">Sign In</button>
+
+    <p style="text-align:center;margin-top:24px;font-size:13px;color:var(--muted)">
+      Don't have an account? <a href="#" onclick="showSignup()">Create one</a>
+    </p>
+  </div>
+
+  <!-- Success state -->
+  <div class="join-success" id="joinSuccess">
+    <div class="icon">&#9889;</div>
+    <h2>You're in.</h2>
+    <p>Check your email to confirm your account. Welcome to the movement.</p>
+    <a href="/" class="btn btn-primary">Back to Home</a>
+  </div>
+</div>
+
+<footer id="mainFooter"></footer>
+
+<script>
+function showLogin() {
+  document.getElementById('joinForm').style.display = 'none';
+  document.getElementById('loginForm').style.display = 'block';
+}
+function showSignup() {
+  document.getElementById('loginForm').style.display = 'none';
+  document.getElementById('joinForm').style.display = 'block';
+}
+
+async function handleJoin() {
+  const email = document.getElementById('joinEmail').value.trim();
+  const password = document.getElementById('joinPassword').value;
+  const displayName = document.getElementById('joinName').value.trim();
+  const newsletter = document.getElementById('joinNewsletter').checked;
+
+  if (!email || !password) return showToast('Email and password required', 'error');
+  if (password.length < 6) return showToast('Password must be at least 6 characters', 'error');
+
+  const sb = getSupabase();
+  if (!sb) return showToast('Auth service unavailable', 'error');
+
+  try {
+    const { data, error } = await sb.auth.signUp({
+      email,
+      password,
+      options: { data: { display_name: displayName || email.split('@')[0] } }
+    });
+    if (error) throw error;
+
+    // Subscribe to newsletter
+    if (newsletter) {
+      fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, source: 'join-page' }),
+      }).catch(() => {});
+    }
+
+    document.getElementById('joinForm').style.display = 'none';
+    document.getElementById('joinSuccess').style.display = 'block';
+  } catch (err) {
+    showToast(err.message || 'Signup failed', 'error');
+  }
+}
+
+async function handleLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+
+  if (!email || !password) return showToast('Email and password required', 'error');
+
+  const sb = getSupabase();
+  if (!sb) return showToast('Auth service unavailable', 'error');
+
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    window.location.href = '/dashboard.html';
+  } catch (err) {
+    showToast(err.message || 'Login failed', 'error');
+  }
+}
+
+async function handleWalletJoin() {
+  if (!window.ethereum) {
+    showToast('MetaMask not detected', 'error');
+    return;
+  }
+  await connectWallet();
+  if (userAccount) {
+    showToast('Wallet connected! Create an account to link it.', 'success');
+  }
+}
+</script>
+</body>
+</html>

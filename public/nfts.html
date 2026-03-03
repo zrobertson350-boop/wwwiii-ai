@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NFTs — WWWIII</title>
+<meta name="description" content="WWWIII Membership NFTs — Supporter, Builder, Architect, and Genesis tier badges on Ethereum.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+<script src="/shared.js" defer></script>
+<style>
+.tier-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px;margin-bottom:48px}
+.tier-card{background:var(--surface);border:2px solid var(--border);border-radius:16px;padding:32px;text-align:center;transition:all .3s;position:relative;overflow:hidden}
+.tier-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .3s}
+.tier-card:hover{transform:translateY(-4px)}
+.tier-card.supporter{border-color:#6c5ce7}.tier-card.supporter::before{background:radial-gradient(circle at center,rgba(108,92,231,.1),transparent 70%)}
+.tier-card.builder{border-color:#a29bfe}.tier-card.builder::before{background:radial-gradient(circle at center,rgba(162,155,254,.1),transparent 70%)}
+.tier-card.architect{border-color:#f0c040}.tier-card.architect::before{background:radial-gradient(circle at center,rgba(240,192,64,.1),transparent 70%)}
+.tier-card.genesis{border-color:#ff3838}.tier-card.genesis::before{background:radial-gradient(circle at center,rgba(255,56,56,.1),transparent 70%)}
+.tier-card:hover::before{opacity:1}
+.tier-card-content{position:relative;z-index:1}
+.tier-icon{font-size:48px;margin-bottom:16px}
+.tier-name{font-family:var(--sans);font-size:20px;font-weight:700;margin-bottom:8px}
+.tier-desc{color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:16px}
+.tier-perks{text-align:left;margin-bottom:20px}
+.tier-perks li{color:var(--muted);font-size:12px;line-height:2;padding-left:20px;position:relative;list-style:none}
+.tier-perks li::before{content:'&#10003;';position:absolute;left:0;color:var(--green);font-weight:700}
+.nft-gallery{margin-top:48px}
+.nft-gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px}
+.nft-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color .3s}
+.nft-item:hover{border-color:var(--accent)}
+.nft-item img{width:100%;aspect-ratio:1;object-fit:cover}
+.nft-item-info{padding:12px}
+.nft-item-info .name{font-family:var(--sans);font-size:13px;font-weight:600;margin-bottom:4px}
+.nft-item-info .owner{font-family:var(--mono);font-size:10px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="glow-orb"></div>
+<nav id="mainNav"></nav>
+
+<div class="page-header">
+  <div class="wrap">
+    <div class="section-tag">NFTs</div>
+    <div class="section-title">Membership Badges</div>
+    <div class="section-desc">On-chain proof of your commitment to publicly funded AI. Each tier unlocks unique benefits.</div>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <div class="tier-cards">
+      <div class="tier-card supporter">
+        <div class="tier-card-content">
+          <div class="tier-icon">&#9733;</div>
+          <div class="tier-name">Supporter</div>
+          <div class="tier-desc">Early believer in the mission</div>
+          <ul class="tier-perks">
+            <li>Model checkpoint access</li>
+            <li>DAO governance rights</li>
+            <li>Supporter badge</li>
+          </ul>
+          <button class="btn btn-outline btn-sm" style="width:100%" onclick="mintNFT('supporter')">Mint — 0.05 ETH</button>
+        </div>
+      </div>
+      <div class="tier-card builder">
+        <div class="tier-card-content">
+          <div class="tier-icon">&#9881;</div>
+          <div class="tier-name">Builder</div>
+          <div class="tier-desc">Active contributor to the project</div>
+          <ul class="tier-perks">
+            <li>Everything in Supporter</li>
+            <li>Priority API access</li>
+            <li>Name in model credits</li>
+            <li>Private channels</li>
+          </ul>
+          <button class="btn btn-primary btn-sm" style="width:100%" onclick="mintNFT('builder')">Mint — 0.25 ETH</button>
+        </div>
+      </div>
+      <div class="tier-card architect">
+        <div class="tier-card-content">
+          <div class="tier-icon">&#9883;</div>
+          <div class="tier-name">Architect</div>
+          <div class="tier-desc">Shaping the architecture</div>
+          <ul class="tier-perks">
+            <li>Everything in Builder</li>
+            <li>Architecture vote weight 3x</li>
+            <li>Dedicated compute credit</li>
+            <li>Advisory council seat</li>
+          </ul>
+          <button class="btn btn-outline btn-sm" style="width:100%" onclick="mintNFT('architect')">Mint — 1.0 ETH</button>
+        </div>
+      </div>
+      <div class="tier-card genesis">
+        <div class="tier-card-content">
+          <div class="tier-icon">&#9733;</div>
+          <div class="tier-name">Genesis</div>
+          <div class="tier-desc">Founding member — limited edition</div>
+          <ul class="tier-perks">
+            <li>Everything in Architect</li>
+            <li>Soulbound — non-transferable</li>
+            <li>Lifetime API access</li>
+            <li>Genesis-only governance track</li>
+          </ul>
+          <button class="btn btn-outline btn-sm" style="width:100%;border-color:var(--red);color:var(--red)" onclick="mintNFT('genesis')">Invite Only</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="nft-gallery">
+      <div class="section-tag">Gallery</div>
+      <div class="section-title" style="margin-bottom:24px">Minted Badges</div>
+      <div class="nft-gallery-grid" id="nftGrid">
+        <div class="spinner" style="grid-column:1/-1;padding:40px 0"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer id="mainFooter"></footer>
+
+<script>
+async function mintNFT(tier) {
+  if (tier === 'genesis') return showToast('Genesis tier is invite-only', 'error');
+  if (!userAccount) await connectWallet();
+  if (!userAccount) return;
+
+  const prices = { supporter: '0.05', builder: '0.25', architect: '1.0' };
+  const ethAmount = prices[tier];
+
+  showToast(`NFT minting on mainnet coming soon! Tier: ${tier}, Price: ${ethAmount} ETH`);
+}
+
+async function loadNFTs() {
+  const grid = document.getElementById('nftGrid');
+  try {
+    const res = await fetch('/api/nfts');
+    const nfts = await res.json();
+    if (!nfts?.length) {
+      grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="icon">&#127912;</div><h3>No NFTs minted yet</h3><p>Be the first to mint a membership badge!</p></div>';
+      return;
+    }
+    grid.innerHTML = nfts.map(n => `
+      <div class="nft-item">
+        <img src="${n.image_url || `https://image.pollinations.ai/prompt/WWWIII+${n.tier}+membership+badge+cyberpunk+neon+dark?width=512&height=512&nologo=true`}" alt="" loading="lazy">
+        <div class="nft-item-info">
+          <div class="name">WWWIII ${n.tier.charAt(0).toUpperCase() + n.tier.slice(1)} #${n.token_id || '?'}</div>
+          <div class="owner">${n.owner_address ? n.owner_address.slice(0,6) + '...' + n.owner_address.slice(-4) : 'Unknown'}</div>
+        </div>
+      </div>
+    `).join('');
+  } catch {
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="icon">&#127912;</div><h3>No NFTs yet</h3><p>Minting coming soon.</p></div>';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', loadNFTs);
+</script>
+</body>
+</html>

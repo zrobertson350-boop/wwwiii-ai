@@ -40,6 +40,9 @@
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+<script src="/shared.js" defer></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -412,19 +415,23 @@ footer .f-links a{color:var(--muted)}
 <div class="glow-orb"></div>
 
 <!-- NAV -->
-<nav>
+<nav id="mainNav">
   <div class="wrap">
-    <div class="nav-logo"><span>W</span>WW<span>III</span></div>
+    <a href="/" class="nav-logo"><span>W</span>WW<span>III</span></a>
     <div class="nav-links">
-      <a href="#fund">Fund</a>
-      <a href="#trade">Trade</a>
-      <a href="#mission">Mission</a>
-      <a href="#token">Token</a>
-      <a href="#roadmap">Roadmap</a>
+      <a href="/" class="active">Home</a>
+      <a href="/blog.html">Blog</a>
+      <a href="/community.html">Community</a>
+      <a href="/store.html">Store</a>
+      <a href="/model.html">Model</a>
+      <a href="/art.html">Art</a>
+      <a href="/nfts.html">NFTs</a>
       <a href="/whitepaper.html">Whitepaper</a>
-      <a href="#contract">Contract</a>
     </div>
-    <button class="wallet-btn" id="walletBtn" onclick="connectWallet()">Connect Wallet</button>
+    <div class="nav-right">
+      <button class="wallet-btn" id="walletBtn" onclick="connectWallet()">Connect Wallet</button>
+      <a href="/join.html" class="join-btn">Join</a>
+    </div>
   </div>
 </nav>
 
@@ -438,6 +445,10 @@ footer .f-links a{color:var(--muted)}
       Fighting the privatization of AI.<br>
       Empowering the people to create the model.<br>
       The first <strong>truly open</strong> path to <strong>Super Intelligence</strong>.
+    </div>
+    <div class="hero-cta" style="margin-bottom:28px">
+      <a href="#fund" class="btn btn-primary">Fund the Build</a>
+      <a href="/join.html" class="btn btn-outline">Join the Movement</a>
     </div>
     <!-- FUNDING CIRCLE — HERO FOCAL POINT -->
     <div class="fund-circle-wrap" style="margin-top:28px">
@@ -990,12 +1001,14 @@ footer .f-links a{color:var(--muted)}
     <div class="f-logo"><span>W</span>WW<span>III</span></div>
     <p>The only* publicly developed and created artificial intelligence.</p>
     <div class="f-links">
-      <a href="#mission">Mission</a>
-      <a href="#token">Token</a>
-      <a href="#trade">Trade</a>
-      <a href="#roadmap">Roadmap</a>
+      <a href="/">Home</a>
+      <a href="/blog.html">Blog</a>
+      <a href="/community.html">Community</a>
+      <a href="/store.html">Store</a>
+      <a href="/model.html">Model</a>
+      <a href="/art.html">Art</a>
+      <a href="/nfts.html">NFTs</a>
       <a href="/whitepaper.html">Whitepaper</a>
-      <a href="#fund">Fund</a>
     </div>
   </div>
 </footer>
@@ -1142,10 +1155,6 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(fetchFundingData, 30000);
 });
 
-const TOKEN_ADDRESS = '0x5201ee6ffb64aeA97Cf887bd6852ca572A15f33a';
-const PRESALE_ADDRESS = '0xCD26a62fc178129F4b24759c329e0c1867d4e613';
-const SEPOLIA_CHAIN_ID = '0xaa36a7'; // 11155111
-
 // Presale contract ABI (only the functions we need)
 const PRESALE_ABI = [
   'function buySupporter() external payable',
@@ -1158,71 +1167,6 @@ const PRESALE_ABI = [
   'function contributed(address) external view returns (uint256)',
   'function tokensBought(address) external view returns (uint256)',
 ];
-
-let userAccount = null;
-
-async function connectWallet() {
-  const btn = document.getElementById('walletBtn');
-  if (!window.ethereum) {
-    alert('MetaMask not detected. Please install MetaMask to connect your wallet.');
-    window.open('https://metamask.io/download/', '_blank');
-    return;
-  }
-  try {
-    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-    userAccount = accounts[0];
-    btn.textContent = userAccount.slice(0, 6) + '...' + userAccount.slice(-4);
-    btn.classList.add('connected');
-
-    // Switch to Sepolia if needed
-    try {
-      await window.ethereum.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: SEPOLIA_CHAIN_ID }],
-      });
-    } catch (switchErr) {
-      if (switchErr.code === 4902) {
-        await window.ethereum.request({
-          method: 'wallet_addEthereumChain',
-          params: [{
-            chainId: SEPOLIA_CHAIN_ID,
-            chainName: 'Sepolia Testnet',
-            rpcUrls: ['https://ethereum-sepolia-rpc.publicnode.com'],
-            nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
-            blockExplorerUrls: ['https://sepolia.etherscan.io'],
-          }],
-        });
-      }
-    }
-  } catch (err) {
-    console.error('Wallet connection failed:', err);
-  }
-}
-
-// Auto-reconnect if already authorized
-if (window.ethereum) {
-  window.ethereum.request({ method: 'eth_accounts' }).then(accounts => {
-    if (accounts.length > 0) {
-      userAccount = accounts[0];
-      const btn = document.getElementById('walletBtn');
-      btn.textContent = userAccount.slice(0, 6) + '...' + userAccount.slice(-4);
-      btn.classList.add('connected');
-    }
-  });
-  window.ethereum.on('accountsChanged', accounts => {
-    if (accounts.length === 0) {
-      userAccount = null;
-      const btn = document.getElementById('walletBtn');
-      btn.textContent = 'Connect Wallet';
-      btn.classList.remove('connected');
-    } else {
-      userAccount = accounts[0];
-      const btn = document.getElementById('walletBtn');
-      btn.textContent = userAccount.slice(0, 6) + '...' + userAccount.slice(-4);
-      btn.classList.add('connected');
-    }
-  });
-}
 
 async function fundTier(tier) {
   const prices = { supporter: '0.05', builder: '0.25', architect: '1.0' };

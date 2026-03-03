@@ -461,7 +461,7 @@ footer .f-links a{color:var(--muted)}
         <div class="fund-circle-center">
           <div class="fund-circle-label">Raised</div>
           <div class="fund-circle-raised" id="fundRaisedAmount">$25</div>
-          <div class="fund-circle-goal">out of $1,000,000,000</div>
+          <div class="fund-circle-goal">out of $1,000,000,000,000</div>
           <div class="fund-circle-pct" id="fundRaisedPct">0%</div>
         </div>
       </div>
@@ -469,7 +469,8 @@ footer .f-links a{color:var(--muted)}
         <div class="fund-ms" id="ms-1m"><div class="fund-ms-val">$1M</div><div class="fund-ms-label">Seed</div></div>
         <div class="fund-ms" id="ms-10m"><div class="fund-ms-val">$10M</div><div class="fund-ms-label">Compute</div></div>
         <div class="fund-ms" id="ms-100m"><div class="fund-ms-val">$100M</div><div class="fund-ms-label">Training</div></div>
-        <div class="fund-ms" id="ms-1b"><div class="fund-ms-val">$1B</div><div class="fund-ms-label">SI</div></div>
+        <div class="fund-ms" id="ms-1b"><div class="fund-ms-val">$1B</div><div class="fund-ms-label">Training</div></div>
+        <div class="fund-ms" id="ms-1t"><div class="fund-ms-val">$1T</div><div class="fund-ms-label">SI</div></div>
       </div>
     </div>
 
@@ -1065,7 +1066,7 @@ footer .f-links a{color:var(--muted)}
 
 <script>
 // ── Funding Circle ──
-const FUND_GOAL = 1_000_000_000;
+const FUND_GOAL = 1_000_000_000_000;
 const CIRCLE_CIRCUMFERENCE = 534.07;
 let currentDisplayed = 0;
 
@@ -1106,6 +1107,7 @@ function updateFundingCircle(raised) {
   if (raised >= 10_000_000) document.getElementById('ms-10m')?.classList.add('hit');
   if (raised >= 100_000_000) document.getElementById('ms-100m')?.classList.add('hit');
   if (raised >= 1_000_000_000) document.getElementById('ms-1b')?.classList.add('hit');
+  if (raised >= 1_000_000_000_000) document.getElementById('ms-1t')?.classList.add('hit');
 }
 
 function renderDonorList(donors) {

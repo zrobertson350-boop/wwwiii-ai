@@ -43,7 +43,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
       billing_address_collection: 'auto',
       metadata: {
         wallet_address: walletAddress || '',
-        pro_rata_pct: String((cents / 100 / 1000000000 * 100).toFixed(10)),
+        pro_rata_pct: String((cents / 100 / 1000000000000 * 100).toFixed(12)),
       },
       success_url: `${baseUrl}/success.html?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/#fund`,
@@ -181,7 +181,7 @@ const WWWIII_SYSTEM = `You are WWWIII AI — an early preview of the first publi
 Key facts about the WWWIII project:
 - Token: $WWWIII (ERC-20 on Ethereum)
 - Total supply: 1 billion tokens
-- Goal: Raise $1 billion to fund AGI research and development
+- Goal: Raise $1 trillion to fund AGI research and development
 - Model target: 70B+ parameters initially, scaling toward AGI
 - License: Apache 2.0 — fully open weights, open training, open code
 - Governance: Token holders vote on architecture, training data, compute allocation
